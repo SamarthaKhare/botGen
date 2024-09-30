@@ -15,13 +15,13 @@ def disable_default_document(host_name, is_ntlm=None):
     from remote_connection_helper import get_winrm_result
     try:
         command = command = f"""
-        onProperty -filter 'system.webserver/defaultdocument' -pspath 'IIS:\\sites\\Default Web Site' -name 'enabled' -Value 'False'
-        if ($?) {{
-            echo 'True'
-        }} else {{
-            echo 'False'
-        }}
-        """
+onProperty -filter 'system.webserver/defaultdocument' -pspath 'IIS:\\sites\\Default Web Site' -name 'enabled' -Value 'False'
+if ($?) {{
+    echo 'True'
+}} else {{
+    echo 'False'
+}}
+"""
         result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
         if result.strip().lower() == 'true':
             return {'status': True, 'remarks': 'IIS default document disabled successfully'}
@@ -35,13 +35,13 @@ def enable_default_document(host_name, is_ntlm=None):
     from remote_connection_helper import get_winrm_result
     try:
         command = command = f"""
-        Set-WebConfigurationProperty -filter 'system.webserver/defaultdocument' -pspath 'IIS:\\sites\\Default Web Site' -name 'enabled' -Value 'True'
-        if ($?) {{
-            echo 'True'
-        }} else {{
-            echo 'False'
-        }}
-        """
+Set-WebConfigurationProperty -filter 'system.webserver/defaultdocument' -pspath 'IIS:\\sites\\Default Web Site' -name 'enabled' -Value 'True'
+if ($?) {{
+    echo 'True'
+}} else {{
+    echo 'False'
+}}
+"""
         result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
         if result.strip().lower() == 'true':
             return {'status': True, 'remarks': 'IIS default document enabled successfully'}
