@@ -2,30 +2,40 @@ import os
 
 def disable_smb(host_name, smb_version, is_ntlm=None):
     from remote_connection_helper import get_winrm_result
+    """
+    This function disables the smb 
+    Args: host_name,smb version 
+    Returns :
+    The return is a string based on result 
+    """
     try:
         command = f"""
         Set-SmbServerConfiguration -EnableSMB{smb_version}Protocol $false -Confirm:$false | Out-Null
-        $true
         """
         result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
-        if result.strip().lower() == "true":
-            return {'status': True, 'note': f'SMB version {smb_version} disabled successfully.'}
+        if result:
+            return "SMB version {smb_version} disabled successfully"
         else:
-            return {'status': False, 'note': f'Failed to disable SMB version {smb_version}.'}
+            return "Failed to disable SMB version {smb_version}"
 
     except Exception as exception:
         print(exception)
-        return {'status': False, 'note': 'An error occurred during execution'}
+        return "An error occurred during execution"
 
 def enable_smb(host_name, smb_version, is_ntlm=None):
     from remote_connection_helper import get_winrm_result
+    """
+    This function enables the smb 
+    Args: host_name,smb version 
+    Returns :
+    The return is a string based on result
+    """
     try:
         command = f"""
         Set-SmbServerConfiguration -EnableSMB{smb_version}Protocol $true -Confirm:$false | Out-Null
-        $true
         """
         result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
-        if result.strip().lower() == "true":
+        if result:
             return {'status': True, 'note': f'SMB version {smb_version} enabled successfully.'}
         else:
             return {'status': False, 'note': f'Failed to enable SMB version {smb_version}.'}
@@ -34,30 +44,23 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
         print(exception)
         return {'status': False, 'note': 'An error occurred during execution'}
 
-def check_smb_status(host_name, smb_version, action=None, is_ntlm=None):
+def check_smb_status(host_name, smb_version, is_ntlm=True):
     from remote_connection_helper import get_winrm_result
+    """
+    This function check the status of smb (enabled or disabled) 
+    Args: host_name,smb version
+    Returns : A string either "Enabled", "Disabled" or "Error Occured" 
+    """
     try:
         command = f"""
-        $smb_enabled = Get-SmbServerConfiguration -ErrorAction SilentlyContinue | Select EnableSMB{smb_version}Protocol | ForEach-Object {{ $_.EnableSMB{smb_version}Protocol }}
-        $smb_enabled
+        Get-SmbServerConfiguration | Select EnableSMB{smb_version}Protocol
         """
         result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
-        if action == "pre":
-            if result.strip().lower() == "true":
-                return {'status': True, 'note': f'SMB version {smb_version} is enabled.'}
-            else:
-                return {'status': False, 'note': f'SMB version {smb_version} is already disabled.'}
-        elif action == "post":
-            if result.strip().lower() == "false":
-                return {'status': True, 'note': f'SMB version {smb_version} is disabled.'}
-            else:
-                return {'status': False, 'note': f'SMB version {smb_version} is still enabled.'}
-        elif action is None:
-            return {'status': False, 'note': 'No action specified.'}
+        if result:
+            return "Enabled"
         else:
-            return {'status': False, 'note': f'Invalid action specified: {action}'}
-
+            return "Disabled"
     except Exception as exception:
         print(exception)
-        return {'status': False, 'note': 'An error occurred during execution'}
+        return "Error Occured"
 
