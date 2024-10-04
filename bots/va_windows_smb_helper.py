@@ -6,7 +6,7 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
     This function disables the smb 
     Args: host_name,smb version 
     Returns :
-    The return is a string based on result 
+    The return is a output string if result is not None 
     """
     try:
         command = f"""
@@ -16,7 +16,7 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
         if result:
             return "SMB version {smb_version} disabled successfully"
         else:
-            return "Failed to disable SMB version {smb_version}"
+            return None
 
     except Exception as exception:
         print(exception)
@@ -28,7 +28,7 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
     This function enables the smb 
     Args: host_name,smb version 
     Returns :
-    The return is a string based on result
+    The return is a string if result is not None other wise None is returned 
     """
     try:
         command = f"""
@@ -36,13 +36,13 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
         """
         result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
         if result:
-            return {'status': True, 'note': f'SMB version {smb_version} enabled successfully.'}
+            return "SMB version {smb_version} enabled successfully"
         else:
-            return {'status': False, 'note': f'Failed to enable SMB version {smb_version}.'}
+            return None
 
     except Exception as exception:
         print(exception)
-        return {'status': False, 'note': 'An error occurred during execution'}
+        return 'An error occurred during execution'
 
 def check_smb_status(host_name, smb_version, is_ntlm=True):
     from remote_connection_helper import get_winrm_result
