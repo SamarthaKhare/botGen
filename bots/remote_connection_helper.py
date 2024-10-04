@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 dir=os.path.dirname(os.path.abspath(__file__))
-dotenv_path = f"{dir}/../.env"
+dotenv_path = f"{dir}/../../.env"
 load_dotenv(dotenv_path=dotenv_path)
 
 def parse_command(command):
