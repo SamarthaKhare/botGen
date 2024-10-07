@@ -4,6 +4,7 @@ dir=os.path.dirname(os.path.abspath(__file__))
 dotenv_path = f"{dir}/../../.env"
 load_dotenv(dotenv_path=dotenv_path)
 
+'''
 def parse_command(command):
     """
     Parses a command string to be compatible with PowerShell executionn
@@ -17,8 +18,9 @@ def parse_command(command):
         command = command.replace('{;', '{').replace(';}', '}')  # Fix potential issues with curly braces
         return f'powershell -command "{command}"'
     return None
+'''
 
-
+'''
 def is_ping_success(host, count):
   """
   Checks if a host is reachable via ping.
@@ -44,7 +46,9 @@ def is_ping_success(host, count):
   except Exception as exception:
     print(f"Error during ping: {exception}")
     return False
+'''
 
+'''
 def get_winrm_session(host_name,is_ntlm=True):
     """
     Establishes a WinRM session to a remote host.
@@ -65,8 +69,9 @@ def get_winrm_session(host_name,is_ntlm=True):
     except Exception as exception:
         print(exception)
     return session
+'''
 
-
+'''
 def get_winrm_result(host, command,is_ntlm=True):
     """
     Executes a command on a remote host via WinRM and returns the output.
@@ -99,13 +104,12 @@ def get_winrm_result(host, command,is_ntlm=True):
                 print("Command parsing failed.")
         else:
             print("session is none")
-
-
     except Exception as exception:
         print(exception)
     return result
+'''
 
-
+'''
 def get_winrm_reachable_status(host_name,is_ntlm=True):
     """
     Checks if a host is reachable via WinRM.
@@ -125,7 +129,9 @@ def get_winrm_reachable_status(host_name,is_ntlm=True):
     except Exception as exception:
         print(exception)
     return status
+'''
 
+'''
 def get_ssh_client(host_name,db_connection=None):
   """
   Establishes an SSH connection to a remote host.
@@ -163,8 +169,9 @@ def get_ssh_client(host_name,db_connection=None):
   except KeyError as e:
     print(f"Missing required key in connection parameters: {e}") 
   return None
+'''
 
-
+'''
 def get_ssh_script_result(host_name, command_text,sudo_access=True,db_connection=None):
     """
     Executes a script on a remote host via SSH and returns the output.
@@ -202,7 +209,9 @@ def get_ssh_script_result(host_name, command_text,sudo_access=True,db_connection
     except Exception as exception:
         print(exception)
     return script_result
+'''
 
+'''
 def get_ssh_reachable_status(host_name,db_connection=None):
     """
     Checks if a host is reachable via SSH.
@@ -221,3 +230,4 @@ def get_ssh_reachable_status(host_name,db_connection=None):
     except Exception as exception:
         print(exception)
     return status
+'''
