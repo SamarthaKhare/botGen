@@ -1,6 +1,6 @@
 import os
 
-def disable_smb(host_name, smb_version, is_ntlm=None):
+'''def disable_smb(host_name, smb_version, is_ntlm=None):
     from remote_connection_helper import get_winrm_result
     """
     This function disables the smb 
@@ -20,8 +20,8 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
     except Exception as exception:
         print(exception)
         return "An error occurred during execution"
-
-def enable_smb(host_name, smb_version, is_ntlm=None):
+'''
+'''def enable_smb(host_name, smb_version, is_ntlm=None):
     from remote_connection_helper import get_winrm_result
     """
     This function enables the smb 
@@ -41,8 +41,8 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
     except Exception as exception:
         print(exception)
         return 'An error occurred during execution'
-
-def check_smb_status(host_name, smb_version, is_ntlm=True):
+'''
+'''def check_smb_status(host_name, smb_version, is_ntlm=True):
     from remote_connection_helper import get_winrm_result
     """
     This function check the status of smb (enabled or disabled) 
@@ -61,4 +61,4 @@ def check_smb_status(host_name, smb_version, is_ntlm=True):
     except Exception as exception:
         print(exception)
         return "Error Occured"
-
+'''
