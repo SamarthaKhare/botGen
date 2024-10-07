@@ -2,10 +2,7 @@
 def remove_spaces(value):
     """
     Removes leading and trailing spaces from a given value.
-
-    Args:
-        value: The value to remove spaces from. Can be a string, list, or dictionary.
-
+    Args:value: The value to remove spaces from. Can be a string, list, or dictionary.
     Returns:
         The value with spaces removed. If the value is a string, leading and trailing spaces are removed.
         If the value is a list or dictionary, the function recursively calls itself to remove spaces from each element.
