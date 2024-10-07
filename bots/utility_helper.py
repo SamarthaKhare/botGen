@@ -1,4 +1,4 @@
- 
+'''
 def remove_spaces(value):
     """
     Removes leading and trailing spaces from a given value.
@@ -16,3 +16,4 @@ def remove_spaces(value):
         return {key: remove_spaces(value) for key, value in value.items()}
     else:
         return value
+'''
