@@ -17,7 +17,6 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
             return "SMB version {smb_version} disabled successfully"
         else:
             return None
-
     except Exception as exception:
         print(exception)
         return "An error occurred during execution"
@@ -39,7 +38,6 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
             return "SMB version {smb_version} enabled successfully"
         else:
             return None
-
     except Exception as exception:
         print(exception)
         return 'An error occurred during execution'
