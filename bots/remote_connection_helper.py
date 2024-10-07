@@ -6,13 +6,9 @@ load_dotenv(dotenv_path=dotenv_path)
 
 def parse_command(command):
     """
-    Parses a command string to be compatible with PowerShell execution.
-
-    Args:
-        command: The command string to parse.
-
-    Returns:
-        The parsed command string.
+    Parses a command string to be compatible with PowerShell executionn
+    Args:command: The command string to parse.
+    Returns:The parsed command string.
     """
     import re
     if command is not None:
@@ -26,33 +22,25 @@ def parse_command(command):
 def is_ping_success(host, count):
   """
   Checks if a host is reachable via ping.
-
   Args:
     host: The host name or IP address to ping.
     count: The number of ping packets to send.
-
-  Returns:
-    True if the ping is successful, False otherwise.
+  Returns:True if the ping is successful, False otherwise.
   """
   # Determine the ping command based on the operating system
-  
-
   import subprocess
   import platform
   ping_command = ['ping', '-c', str(count), host]
   if platform.system() == 'Windows':
     ping_command = ['ping', '-n', str(count), host]
-
   try:
     # Execute the ping command
     response = subprocess.run(ping_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
     # Check if the ping was successful (return code 0)
     if response.returncode == 0:
       return True
     else:
       return False
-
   except Exception as exception:
     print(f"Error during ping: {exception}")
     return False
@@ -60,13 +48,10 @@ def is_ping_success(host, count):
 def get_winrm_session(host_name,is_ntlm=True):
     """
     Establishes a WinRM session to a remote host.
-
     Args:
         host_name: The host name or IP address of the remote machine.
         is_ntlm: Whether to use NTLM authentication (default: False).
-
-    Returns:
-        A winrm.Session object if the session is successfully established, None otherwise.
+    Returns: A winrm.Session object if the session is successfully established, None otherwise.
     """
     import winrm
     username=os.environ['USER_NAME_WINDOWS']
@@ -85,14 +70,11 @@ def get_winrm_session(host_name,is_ntlm=True):
 def get_winrm_result(host, command,is_ntlm=True):
     """
     Executes a command on a remote host via WinRM and returns the output.
-
     Args:
         host: The host name or IP address of the remote machine.
         command: The command to execute.
         is_ntlm: Whether to use NTLM authentication.
-
-    Returns:
-        The output of the command as a string or None if an error occurs .
+    Returns: The output of the command as a string or None if an error occurs .
     """
     result = None
     try:
@@ -121,20 +103,16 @@ def get_winrm_result(host, command,is_ntlm=True):
 
     except Exception as exception:
         print(exception)
-
     return result
 
 
 def get_winrm_reachable_status(host_name,is_ntlm=True):
     """
     Checks if a host is reachable via WinRM.
-
     Args:
         host_name: The host name or IP address of the remote machine.
         is_ntlm: Whether to use NTLM authentication.
-
-    Returns:
-        "Success" if the host is reachable, "Failure" otherwise.
+    Returns: "Success" if the host is reachable, "Failure" otherwise.
     """
     status="Failure"
     try:
@@ -151,12 +129,10 @@ def get_winrm_reachable_status(host_name,is_ntlm=True):
 def get_ssh_client(host_name,db_connection=None):
   """
   Establishes an SSH connection to a remote host.
-
   Args:
     host_name: The host name or IP address of the remote machine.
     db_connection: A dictionary containing 'username' and 'password' for authentication (optional). 
-  Returns:
-    A paramiko.SSHClient object if the connection is successfully established, None otherwise.
+  Returns: A paramiko.SSHClient object if the connection is successfully established, None otherwise.
   """
   print("in")
   import paramiko
@@ -179,32 +155,25 @@ def get_ssh_client(host_name,db_connection=None):
       username=connection_params['username'],
       password=connection_params['password']
     )
-
     # Check if the transport is active
     if client.get_transport() and client.get_transport().is_active():
       return client
-
   except (paramiko.AuthenticationException, paramiko.SSHException) as e:
     print(f"Error establishing SSH connection: {e}")
-
   except KeyError as e:
-    print(f"Missing required key in connection parameters: {e}")
-    
+    print(f"Missing required key in connection parameters: {e}") 
   return None
 
 
 def get_ssh_script_result(host_name, command_text,sudo_access=True,db_connection=None):
     """
     Executes a script on a remote host via SSH and returns the output.
-
     Args:
         host_name: The host name or IP address of the remote machine.
         command_text: The command or script to execute.
         sudo_access: Whether to execute the command with sudo privileges.
         db_connection: username,password for connection (optional)
-
-    Returns:
-        The output of the script as a string, or None if an error occurs.
+    Returns: The output of the script as a string, or None if an error occurs.
     """
     password=""
     try:
@@ -237,13 +206,10 @@ def get_ssh_script_result(host_name, command_text,sudo_access=True,db_connection
 def get_ssh_reachable_status(host_name,db_connection=None):
     """
     Checks if a host is reachable via SSH.
-
     Args:
         host_name: The host name or IP address of the remote machine.
         db_connection: The name of the database connection to use for authentication (optional).
-
-    Returns:
-        "SUCCESS" if the host is reachable, "Failure" otherwise.
+    Returns: "SUCCESS" if the host is reachable, "Failure" otherwise.
     """
     status = "Failure"
     try:
