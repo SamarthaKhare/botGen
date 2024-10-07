@@ -1,5 +1,5 @@
 import os
-def check_default_website_presence(host_name, is_ntlm=None):
+'''def check_default_website_presence(host_name, is_ntlm=None):
     """
     This function check the default status of iis 
     Args: host_name
@@ -15,8 +15,8 @@ def check_default_website_presence(host_name, is_ntlm=None):
     except Exception as exception:
         print(exception)
         return False
-
-def disable_default_document(host_name, is_ntlm=None):
+'''
+'''def disable_default_document(host_name, is_ntlm=None):
     """
     This function disables the default document 
     Args: host_name
@@ -40,8 +40,8 @@ def disable_default_document(host_name, is_ntlm=None):
     except Exception as exception:
         print(exception)
         return 'Error disabling IIS default document'
-
-def enable_default_document(host_name, is_ntlm=None):
+'''
+'''def enable_default_document(host_name, is_ntlm=None):
     """
     This function enables the default document  
     Args: host_name
@@ -65,3 +65,4 @@ def enable_default_document(host_name, is_ntlm=None):
     except Exception as exception:
         print(exception)
         return 'Error enabling IIS default document'
+'''
