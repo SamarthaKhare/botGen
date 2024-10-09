@@ -1,15 +1,12 @@
 import os
 def disable_smb(host_name, smb_version, is_ntlm=None):
-    from remote_connection_helper import get_winrm_result
     """
     Disables the specified SMB (Server Message Block) version on a remote Windows server.
-
     Args:
         host_name (str): The hostname or IP address of the remote server.
         smb_version (int/str): The version of SMB to disable (e.g., '1', '2', '3').
         is_ntlm (bool, optional): A flag indicating whether NTLM authentication is required.
             Defaults to None.
-
     Returns:
         str: A success message if the SMB version was disabled successfully.
         None: If the command execution fails or the result is None.
@@ -18,6 +15,7 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
     Raises:
         Exception: Captures and prints any exceptions encountered during command execution.
     """
+    from remote_connection_helper import get_winrm_result
     try:
         command = f"""
         Set-SmbServerConfiguration -EnableSMB{smb_version}Protocol $false -Confirm:$false | Out-Null
@@ -32,7 +30,6 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
         return "An error occurred during execution"
 
 def enable_smb(host_name, smb_version, is_ntlm=None):
-    from remote_connection_helper import get_winrm_result
     """
     Enables the specified SMB (Server Message Block) protocol version on a remote server.
 
@@ -48,6 +45,7 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
     Example:
         enable_smb("192.168.1.10", 3)
     """
+    from remote_connection_helper import get_winrm_result
     try:
         command = f"""
         Set-SmbServerConfiguration -EnableSMB{smb_version}Protocol $true -Confirm:$false | Out-Null
@@ -62,7 +60,6 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
         return 'An error occurred during execution'
 
 def check_smb_status(host_name, smb_version, is_ntlm=True):
-    from remote_connection_helper import get_winrm_result
     """
     Checks the status of the specified SMB (Server Message Block) protocol version on a remote server.
 
@@ -78,6 +75,7 @@ def check_smb_status(host_name, smb_version, is_ntlm=True):
     Example:
         check_smb_status("192.168.1.10", 3)
     """
+    from remote_connection_helper import get_winrm_result
     try:
         command = f"""
         Get-SmbServerConfiguration | Select EnableSMB{smb_version}Protocol
