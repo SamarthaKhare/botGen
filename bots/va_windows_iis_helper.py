@@ -2,7 +2,7 @@ import os
 
 def check_default_website_presence(host_name, is_ntlm=None):
     """
-    Checks the presence or status of the default IIS (Internet Information Services) website on a remote server.
+    Checks the presence or status of the default IIS (Internet Information Services) website on a remote windows server.
 
     Args:
         host_name (str): The hostname or IP address of the remote server.
@@ -10,9 +10,6 @@ def check_default_website_presence(host_name, is_ntlm=None):
 
     Returns:
         bool: True if the default IIS website is enabled, False if it is disabled or an error occurs.
-
-    Example:
-        check_default_website_presence("192.168.1.15")
     """
     from remote_connection_helper import get_winrm_result
     try:
@@ -27,7 +24,7 @@ def check_default_website_presence(host_name, is_ntlm=None):
         
 def disable_default_document(host_name, is_ntlm=None):
     """
-    Disables the default document setting in IIS (Internet Information Services) for a remote server.
+    Disables the default document setting in IIS (Internet Information Services) for a remote windows server.
 
     Args:
         host_name (str): The hostname or IP address of the remote server.
@@ -35,9 +32,6 @@ def disable_default_document(host_name, is_ntlm=None):
 
     Returns:
         str: A message indicating whether the default IIS document was successfully disabled or an error occurred.
-
-    Example:
-        disable_default_document("192.168.1.15")
     """
     from remote_connection_helper import get_winrm_result
     try:
@@ -60,7 +54,7 @@ def disable_default_document(host_name, is_ntlm=None):
 
 def enable_default_document(host_name, is_ntlm=None):
     """
-    Enables the default document setting in IIS (Internet Information Services) for a remote server.
+    Enables the default document setting in IIS (Internet Information Services) for a remote windows server.
 
     Args:
         host_name (str): The hostname or IP address of the remote server.
@@ -68,9 +62,6 @@ def enable_default_document(host_name, is_ntlm=None):
 
     Returns:
         str: A message indicating whether the default IIS document was successfully enabled or an error occurred.
-
-    Example:
-        enable_default_document("192.168.1.15")
     """
     from remote_connection_helper import get_winrm_result
     try:
@@ -90,6 +81,3 @@ def enable_default_document(host_name, is_ntlm=None):
     except Exception as exception:
         print(exception)
         return 'Error enabling IIS default document'
-
-
-
