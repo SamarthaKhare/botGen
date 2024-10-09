@@ -11,9 +11,6 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
         str: A success message if the SMB version was disabled successfully.
         None: If the command execution fails or the result is None.
         str: An error message if an exception occurs during execution.
-
-    Raises:
-        Exception: Captures and prints any exceptions encountered during command execution.
     """
     from remote_connection_helper import get_winrm_result
     try:
@@ -41,9 +38,6 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
     Returns:
         str: A success message if the SMB protocol is enabled, or None if the operation failed.
         In case of an error, it prints the exception and returns an error message.
-    
-    Example:
-        enable_smb("192.168.1.10", 3)
     """
     from remote_connection_helper import get_winrm_result
     try:
@@ -71,9 +65,6 @@ def check_smb_status(host_name, smb_version, is_ntlm=True):
     Returns:
         str: "Enabled" if the specified SMB version is enabled, "Disabled" if it is disabled, 
         or "Error Occurred" if an exception is raised during the execution.
-    
-    Example:
-        check_smb_status("192.168.1.10", 3)
     """
     from remote_connection_helper import get_winrm_result
     try:
