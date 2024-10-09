@@ -78,8 +78,7 @@ def get_winrm_session(host_name, is_ntlm=True):
 
 def get_winrm_result(host, command, is_ntlm=True):
     """
-    Executes a command on a remote host via WinRM and returns the output.
-    
+    Executes a command on a remote windows host via WinRM and returns the output.
     Args:
         host (str): The host name or IP address of the remote machine.
         command (str): The command to execute.
