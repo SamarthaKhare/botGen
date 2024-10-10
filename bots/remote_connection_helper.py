@@ -7,10 +7,8 @@ load_dotenv(dotenv_path=dotenv_path)
 def parse_command(command):
     """
     Parses a command string to be compatible with PowerShell execution.
-    
     Args:
         command (str): The command string to parse.
-        
     Returns:
         str: The parsed command string formatted for PowerShell execution, or None if the command is None.
     """
@@ -26,7 +24,6 @@ def parse_command(command):
 def is_ping_success(host, count):
     """
     Checks if a host is reachable via ping.
-    
     Args:
         host (str): The host name or IP address to ping.
         count (int): The number of ping packets to send.
@@ -52,12 +49,10 @@ def is_ping_success(host, count):
 
 def get_winrm_session(host_name, is_ntlm=True):
     """
-    Establishes a WinRM session to a remote host.
-    
+    Establishes a WinRM session to a remote windows host host.
     Args:
         host_name (str): The host name or IP address of the remote machine.
         is_ntlm (bool): Whether to use NTLM authentication (default: True).
-        
     Returns:
         winrm.Session: A WinRM session object if the session is successfully established, None otherwise.
     """
@@ -78,12 +73,11 @@ def get_winrm_session(host_name, is_ntlm=True):
 
 def get_winrm_result(host, command, is_ntlm=True):
     """
-    Executes a command on a remote windows host via WinRM and returns the output.
+    Executes a command on a remote windows host via WinRM and returns the output of the powershell command.
     Args:
         host (str): The host name or IP address of the remote machine.
         command (str): The command to execute.
         is_ntlm (bool): Whether to use NTLM authentication.
-        
     Returns:
         str: The output of the command as a string, or None if an error occurs.
     """
@@ -115,8 +109,7 @@ def get_winrm_result(host, command, is_ntlm=True):
 
 def get_winrm_reachable_status(host_name, is_ntlm=True):
     """
-    Checks if a host is reachable via WinRM.
-    
+    Checks if a windows host is reachable via WinRM.
     Args:
         host_name (str): The host name or IP address of the remote machine.
         is_ntlm (bool): Whether to use NTLM authentication.
@@ -139,12 +132,10 @@ def get_winrm_reachable_status(host_name, is_ntlm=True):
 
 def get_ssh_client(host_name, db_connection=None):
     """
-    Establishes an SSH connection to a remote host.
-    
+    Establishes an SSH connection to a remote linux host.
     Args:
         host_name (str): The host name or IP address of the remote machine.
         db_connection (dict): A dictionary containing 'username' and 'password' for authentication (optional).
-        
     Returns:
         paramiko.SSHClient: An SSH client object if the connection is successfully established, None otherwise.
     """
@@ -173,14 +164,12 @@ def get_ssh_client(host_name, db_connection=None):
 
 def get_ssh_script_result(host_name, command_text, sudo_access=True, db_connection=None):
     """
-    Executes a script on a remote host via SSH and returns the output.
-    
+    Executes a script on a remote linux host via SSH and returns the output for ssh command.
     Args:
         host_name (str): The host name or IP address of the remote machine.
         command_text (str): The command or script to execute.
         sudo_access (bool): Whether to execute the command with sudo privileges.
         db_connection (dict): Optional authentication credentials.
-        
     Returns:
         str: The output of the script as a string, or None if an error occurs.
     """
@@ -214,8 +203,7 @@ def get_ssh_script_result(host_name, command_text, sudo_access=True, db_connecti
 
 def get_ssh_reachable_status(host_name, db_connection=None):
     """
-    Checks if a host is reachable via SSH.
-    
+    Checks if a linux host is reachable via SSH.
     Args:
         host_name (str): The host name or IP address of the remote machine.
         db_connection (dict): Optional authentication credentials.
