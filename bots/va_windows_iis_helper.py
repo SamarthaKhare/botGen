@@ -2,17 +2,19 @@ import os
 
 def check_default_website_presence(host_name, is_ntlm=None):
     """
-    Checks the presence or status of the default IIS (Internet Information Services) website on a remote windows server.
-
+    Checks the presence or status of the default IIS (Internet Information Services) website's default document on a remote Windows server.
+    This function connects to the remote server using WinRM, queries the default IIS website, and checks whether 
+    the default document feature is enabled.
     Args:
-        host_name (str): The hostname or IP address of the remote server.
-        is_ntlm (bool, optional): Indicates whether NTLM authentication is required. Defaults to None.
-
-    Returns:
-        bool: True if the default IIS website is enabled, False if it is disabled or an error occurs.
+        host_name (str): The hostname or IP address of the remote Windows server.
+        is_ntlm (bool, optional): Indicates whether NTLM authentication is required. If True, NTLM authentication is used. Defaults to None (no authentication).
+    Returns: bool: 
+            - True if the default IIS website's default document feature is enabled.
+            - False if it is disabled, or if an error occurs during the check.
     """
     from remote_connection_helper import get_winrm_result
     try:
+        # PowerShell command to check the enabled status of the default IIS website
         command = "Get-WebConfigurationProperty -Filter 'system.webserver/defaultdocument' -pspath 'IIS:\\sites\\Default Web Site' -name 'enabled' | Select-Object -ExpandProperty value"
         status_result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
         if status_result is not None:
@@ -24,17 +26,19 @@ def check_default_website_presence(host_name, is_ntlm=None):
         
 def disable_default_document(host_name, is_ntlm=None):
     """
-    Disables the default document setting in IIS (Internet Information Services) for a remote windows server.
-
+    Disables the default document setting in IIS (Internet Information Services) for a remote Windows server.
+    The function connects to the remote server using WinRM and executes a PowerShell command to disable the default 
+    document feature of the IIS default website. It also checks for command success and returns a message accordingly.
     Args:
-        host_name (str): The hostname or IP address of the remote server.
-        is_ntlm (bool, optional): Indicates whether NTLM authentication is required. Defaults to None.
-
-    Returns:
-        str: A message indicating whether the default IIS document was successfully disabled or an error occurred.
+        host_name (str): The hostname or IP address of the remote Windows server.
+        is_ntlm (bool, optional): Indicates whether NTLM authentication is required. If True, NTLM authentication is used. Defaults to None (no authentication).
+    Returns: str: 
+            - 'IIS default document disabled successfully' if the operation is successful.
+            - 'Error disabling IIS default document' if an error occurs or the operation fails.
     """
     from remote_connection_helper import get_winrm_result
     try:
+        # PowerShell command to disable the default document in IIS
         command = f"""
         Set-WebConfigurationProperty -filter 'system.webserver/defaultdocument' -pspath 'IIS:\\sites\\Default Web Site' -name 'enabled' -Value 'False'
         if ($?) {{
@@ -54,17 +58,19 @@ def disable_default_document(host_name, is_ntlm=None):
 
 def enable_default_document(host_name, is_ntlm=None):
     """
-    Enables the default document setting in IIS (Internet Information Services) for a remote windows server.
-
+    Enables the default document setting in IIS (Internet Information Services) for a remote Windows server.
+    This function connects to the remote server using WinRM and runs a PowerShell command to enable the default 
+    document feature of the IIS default website. It checks for success and returns an appropriate message.
     Args:
-        host_name (str): The hostname or IP address of the remote server.
-        is_ntlm (bool, optional): Indicates whether NTLM authentication is required. Defaults to None.
-
-    Returns:
-        str: A message indicating whether the default IIS document was successfully enabled or an error occurred.
+        host_name (str): The hostname or IP address of the remote Windows server.
+        is_ntlm (bool, optional): Indicates whether NTLM authentication is required. If True, NTLM authentication is used.Defaults to None (no authentication).
+    Returns: str: 
+            - 'IIS default document enabled successfully' if the operation is successful.
+            - 'Error enabling IIS default document' if an error occurs or the operation fails.
     """
     from remote_connection_helper import get_winrm_result
     try:
+        # PowerShell command to enable the default document in IIS
         command = f"""
         Set-WebConfigurationProperty -filter 'system.webserver/defaultdocument' -pspath 'IIS:\\sites\\Default Web Site' -name 'enabled' -Value 'True'
         if ($?) {{
