@@ -31,7 +31,10 @@ def remove_spaces(value):
         return value
 
 def create_ticket(message):
- 
+
+    """
+    Creates service now incident tickets
+    """
     instance = os.environ['SN_INSTANCE']
     username = os.environ['SN_USERNAME']
     password = os.environ['SN_PASSWORD']
