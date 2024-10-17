@@ -1,5 +1,5 @@
 import os
-def disable_smb(host_name, smb_version, is_ntlm=None):
+def disable_smb(host_name, smb_version, is_ntlm=True):
     """
     Disables the specified SMB (Server Message Block) protocol version on a remote Windows server.
     This function connects to a remote Windows server using WinRM and disables the specified SMB protocol version 
@@ -7,12 +7,12 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
     Args:
         host_name (str): The hostname or IP address of the remote Windows server.
         smb_version (int/str): The version of SMB protocol to disable. Should be passed as a number or string ('1', '2', '3').
-        is_ntlm (bool, optional): A flag indicating whether NTLM authentication is required. If True, NTLM authentication is used.Defaults to None (no authentication).
+        is_ntlm (bool, optional): A flag indicating whether NTLM authentication is required. If True, NTLM authentication is used.Defaults to True.
     Returns:
         str: 
             - "SMB version {smb_version} disabled successfully" if the SMB protocol was disabled successfully.
-        None: 
-            - If the command execution fails or returns no result.
+        str: 
+            - "SMB version {smb_version} can not be disabled" If the command execution fails or returns no result.
         str: 
             - "An error occurred during execution" if an exception is raised during command execution.
     """
@@ -26,12 +26,12 @@ def disable_smb(host_name, smb_version, is_ntlm=None):
         if result:
             return f"SMB version {smb_version} disabled successfully"
         else:
-            return None
+            return f"SMB version {smb_version} can not be disabled"
     except Exception as exception:
         print(exception)
         return "An error occurred during execution"
 
-def enable_smb(host_name, smb_version, is_ntlm=None):
+def enable_smb(host_name, smb_version, is_ntlm=True):
     """
     Enables the specified SMB (Server Message Block) protocol version on a remote Windows server.
     This function connects to a remote Windows server using WinRM and enables the specified SMB protocol version 
@@ -39,12 +39,12 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
     Args:
         host_name (str): The hostname or IP address of the remote Windows server.
         smb_version (int/str): The version of SMB protocol to enable. Should be passed as a number or string ('1', '2', '3').
-        is_ntlm (bool, optional): A flag indicating whether NTLM authentication is required. If True, NTLM authentication is used.Defaults to None (no authentication).
+        is_ntlm (bool, optional): A flag indicating whether NTLM authentication is required. If True, NTLM authentication is used.Defaults to True.
     Returns:
         str: 
             - "SMB version {smb_version} enabled successfully" if the SMB protocol was enabled successfully.
-        None: 
-            - If the command execution fails or returns no result.
+        str: 
+            -" SMB version {smb_version} can not be enabled" If the command execution fails or returns no result.
         str: 
             - "An error occurred during execution" if an exception is raised during command execution.
     """
@@ -58,7 +58,7 @@ def enable_smb(host_name, smb_version, is_ntlm=None):
         if result:
             return f"SMB version {smb_version} enabled successfully"
         else:
-            return None
+            return f"SMB version {smb_version} can not be enabled"
     except Exception as exception:
         print(exception)
         return 'An error occurred during execution'
