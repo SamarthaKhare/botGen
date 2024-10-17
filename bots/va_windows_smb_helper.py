@@ -84,6 +84,10 @@ def check_smb_status(host_name, smb_version, is_ntlm=True):
         Get-SmbServerConfiguration | Select EnableSMB{smb_version}Protocol
         """
         result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
+        if "False" in result:
+            result=False
+        else:
+            result=True
         if result:
             return "Enabled"
         else:
