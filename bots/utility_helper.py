@@ -29,33 +29,3 @@ def remove_spaces(value):
         return {key: remove_spaces(val) for key, val in value.items()}
     else:
         return value
-
-def create_ticket(message):
-
-    """
-    Creates service now incident tickets
-    """
-    instance = os.environ['SN_INSTANCE']
-    username = os.environ['SN_USERNAME']
-    password = os.environ['SN_PASSWORD']
-    url = f'https://{instance}.service-now.com/api/now/table/incident'
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    }
-    data = {
-        'short_description': message,
-        'description': message,
-        'category':'inquiry'
-    }
-    
-    logging.info(f"Sending request to ServiceNow with data: {data}")
-    try:
-        response = requests.post(url, auth=HTTPBasicAuth(username, password), headers=headers, data=json.dumps(data))
-        response.raise_for_status()  
-        logging.info(f"Response status code: {response.status_code}")
-        logging.info(f"Response content: {response.content}")
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Request failed: {e}")
-        return {'error': str(e)}
