@@ -87,11 +87,8 @@ def service_remediation(payload):
         - If the service status is 'Running', the ticket is resolved as "Running".
         - If the service status is unknown or cannot be determined, the ticket is escalated.
     4. If the device is unreachable, the function logs that the device is not reachable.
-    5. Handles any exceptions that occur during execution and logs the exception details.
-    Args:
-        payload (dict): A dictionary containing configuration details, expected to include:
-        - 'deviceName' (str): The name of the device.
-        - 'serviceName' (str): The name of the service to be remediated.
+    Args:payload (dict): A dictionary containing device configuration details, includes:deviceName ,serviceName.
+    Returns- None
     """
     try:
         state = None
