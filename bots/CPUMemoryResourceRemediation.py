@@ -144,8 +144,7 @@ def is_device_reachable(device_config):
     reachability checks.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details such as device_name,and whether the device is Linux or not.
-    Returns:str: A string indicating the reachability status ("Success", "Ping Failure", "SSH Failure", 
-    "Winrm Failure").
+    Returns:str: A string indicating the reachability status ("Success", "Ping Failure", "SSH Failure","Winrm Failure").
     """
     status = None
     try: 
@@ -240,8 +239,8 @@ def get_resource_usage(device_config):
        - Escalates the ticket if usage exceeds the threshold.
     6. Escalates for SSH failure if usage data is not retrievable.
     7. Catches and logs any exceptions encountered.
-    Args:
-        device_config (dict): Device configuration, including device_name,threshold_value,alert_type etc
+    Args:device_config (dict): Device configuration, including device_name,threshold_value,alert_type etc
+    Return:None
     """
     actual_threshold = None
     try:
