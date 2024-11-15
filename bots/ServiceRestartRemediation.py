@@ -77,11 +77,23 @@ def is_device_reachable(device_config):
     
 def service_remediation(incident):
     """
-    This function performs end to end remediation for service. It first checks if the device is reachable. 
-    If the device is reachable, it checks the state of the service and takes action to restart 
-    it if necessary. It then resolves or escalates the incident based on the outcome of the remediation.
-    Arguments- incident (dict): A dictionary containing the incident details, including device name and service name.
-    Returns- None
+    Attempts to remediate a service issue on a remote device based on the provided payload. 
+    The function performs the following tasks:
+    1. Validates the provided payload and sets a service ticket to an "in-progress" state.
+    2. Checks if the specified device is reachable.
+    3. Retrieves the status of the service on the device:
+        - If the service status is 'Stopped', the function attempts to restart it.
+        - If the restart is successful, the ticket is resolved with a "Success" status.
+        - If the restart fails, the ticket is escalated with a "Failure" status.
+        - If the service status is 'Running', the ticket is resolved as "Running".
+        - If the service status is unknown or cannot be determined, the ticket is escalated.
+    4. If the device is unreachable, the function logs that the device is not reachable.
+    5. Handles any exceptions that occur during execution and logs the exception details.
+    Args:
+        payload (dict): A dictionary containing configuration details, expected to include:
+        - 'deviceName' (str): The name of the device.
+        - 'serviceName' (str): The name of the service to be remediated.
+    Return-None
     """
     try:
         state = None
