@@ -140,8 +140,10 @@ def get_workflow_payload(workflow,incident):
 		device_name = get_pattern_value(workflow, subcategory, description, search_pattern)
 		if device_name is not None:
 			device_name = device_name.strip()
+		else:
+			print("No device name in incident details")
 	
-	if workflow == "HIGH RESOURCE USAGE":
+	if workflow == "CPUMemoryResourceRemediation":
 		alert_type = incident.get("alertType")
 		search_pattern = "thresholdValuePatterns"
 		temp_subcategory = "{} {}".format(subcategory, alert_type)
@@ -159,11 +161,49 @@ def get_workflow_payload(workflow,incident):
 			payload["conditionLinuxCheck"] = True
 		else:
 			payload["conditionLinuxCheck"] = False
-
-	elif workflow=="SERVICERESTART":
+		if all([payload["sysId"],payload["number"],device_name,alert_type,threshold_value]):
+			if ("lnx" in device_name.lower() or payload["conditionLinuxCheck"] == True):
+				is_linux = True
+			else:
+				is_linux = False
+			is_sql = "sql" in device_name.lower()
+			is_comment_code = "comment" in device_name.lower()
+			print('is linux', is_linux)
+			is_vault_agent = "vault" in device_name.lower()
+			resolver_details = get_workflow_config_value("CPUMEMORY_RESOLVER_GROUP")
+			if is_linux:
+				resolver_group = resolver_details.get("lnx", None)
+			if is_sql:
+				resolver_group = resolver_details.get("sql", None)
+			if is_comment_code:
+				resolver_group = resolver_details.get("commentCode", None)
+			if is_vault_agent:
+				resolver_group = resolver_details.get("vaultAgent", None)
+			if not (is_linux or is_sql or is_comment_code or is_vault_agent):
+				resolver_group = resolver_details.get("others", None)
+			resolver_id=resolver_group.get('resolverGroup', None)
+			resolver = resolver_group.get('resolver', None)
+			mail_address = resolver_group.get('mailAddress', None)
+			device_config = {'sys_id'        : payload["sys_id"],
+					'incident_id'    : payload["number"],
+					'device_name'    : device_name,
+					'alert_type'     : alert_type.upper(),
+					'threshold_value': threshold_value,
+					'is_linux'       : is_linux,
+					'is_sql'         : is_sql,
+					'is_comment_code': is_comment_code,
+					'is_vault_agent' : is_vault_agent,
+					'resolver_id'    : resolver_id,
+					'resolver'       : resolver,
+					'mail_address'   : mail_address
+					}
+			print('device config is')
+			print(device_config)
+			return device_config
+	elif workflow=="ServiceRestartRemediation":
 		service_name=get_pattern_value(workflow,subcategory,description,"serviceNamePatterns")
 		service_name=service_name.strip()
-
+	
 	if device_name is not None:
 		payload["deviceName"] = device_name
 	if service_name is not None:
