@@ -112,7 +112,7 @@ def get_pattern_value(workflow, subcategory, description, pattern):
 
 def get_workflow_payload(workflow,incident):
 	"""	
-	This function constructs a payload dictionary for an incident based on the given workflow and incident details. 
+	This function returns device configuration for an incident based on the given workflow and incident details. 
 	It extracts relevant fields such as device name, service name, alert type, and threshold values by parsing the 
 	incident description and applying search patterns.
 	Arguments:
