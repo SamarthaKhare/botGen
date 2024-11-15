@@ -1,419 +1,211 @@
+from datetime import datetime
+from logging import exception
+import time
+import os
 
-from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
 from zif_workflow_helper import get_workflow_config_value
-from zif_service_bot import get_automation_status_payloads, insert_automation_status
-from remote_connection_helper import is_ping_success,get_winrm_reachable_status,get_ssh_reachable_status
-from uniconn.servicenow import update_incident
-from GetServiceNowIncidents import get_workflow_payload
+from zif_mongo_helper import get_single_document
+from string_helper import substring_by_text
+from zif_itsm_filter_incidents import get_all_filter_patterns
+from uniconn.servicenow import search_incidents
 
-workflow_name = 'CPUMemoryResourceRemediation'
+INCIDENT_FILTER_COLLECTION = "incident_polling_parameters"
+ITSM_TOOL_NAME = "SERVICENOW"
 
-def get_result_table(result,is_linux):
-    """
-    Generates an HTML table representation of the resource-consuming processes based on the provided 
-    result data. If the device is Linux-based, it formats the data into rows with process information 
-    in each cell. If the device is not Linux-based, it formats the data differently. The table is 
-    formatted with specific styling for better readability.
-    Arguments:
-    - result (list): A list of process data to be displayed in the table. For Linux, this is a list 
-    of dictionaries with process details; for non-Linux, it is a list of strings representing process information.
-    - is_linux (bool): A flag indicating whether the device is Linux-based or not, which determines 
-    the format of the table.
-    Returns- str: A string containing the HTML table of the process data.
-    """
-    table_result = None
-    td_string ="<td style='font-family: calibri, tahoma, verdana; color: black; height: 10px;'>"
-    count = 0
-    try:
-        if is_linux:
-            processes = [[item for item in row.values()] for row in result]
-            table_result = ""
-            for process in processes:
-                table_result += "<tr>" + td_string
-                count += 1
-                process.insert(0, str(count))
-                table_result += ("</td>" + td_string).join(process)
-                table_result += "</td></tr>"
-        else:
-            table_result = ""
-            for process in result:
-                table_result += "<tr>" + td_string
-                count += 1
-                process_format = str(count) + "|||"+process
-                table_result += ("</td>" + td_string).join(process_format.split('|||'))
-                table_result += "</td></tr>"
-    except Exception as exception:
-        print(exception)
-    return table_result
+def get_incident_search_result(workflow_name):
+	"""
+	Fetches and returns the search result for incidents based on the filter patterns generated for the specified workflow name.
+	Arguments:workflow_name (str): The name of the workflow for which incidents are being searched.
+	Returns- dict or None: The search result if found, otherwise None.
+	"""
+	search_result = None
+	try:
+		filter_pattern = get_all_filter_patterns(ITSM_TOOL_NAME, workflow_name)
+		if filter_pattern is not None:
+			search_result = search_incidents(filter_pattern)
+	except Exception as exception:
+		print(exception)
 
-def update_metrics(result_time,remarks):
-    try:
-        effort_config = get_workflow_config_value("REMEDIATE_EFFORT_SAVINGS")
-        if effort_config is not None and workflow_name.upper() in effort_config:
-            effort_saving = effort_config[workflow_name.upper()]
-            status_payload = get_automation_status_payloads(
-                workflow_name, result_time, True,
-                'Completed', remarks, effort_saving)
-            if status_payload is not None:
-                insert_automation_status(status_payload)
-    except Exception as exception:
-        print(exception)
+	return search_result
 
-def update_incident_status(status,incident,payload,process=None,process_result=None):
-    """
-    Updates the status of an incident in an ITSM tool. The function prepares and formats the payload 
-    based on the incident details and updates the incident with the specified status. Additional 
-    information such as work notes and close notes are formatted using incident attributes.
-    Arguments:
-    - status (str): The new status to be assigned to the incident ("WIP" or "RESOLVED").
-    - incident (dict): A dictionary containing incident details such as sys_id, alert_type,resolver_id, etc.
-    - payload (dict): The payload to be updated for the incident.
-    - process (optional): The process details associated with the incident, if any.
-    - process_result (optional, str): The result of the process, which will be included in 
-    the work notes.
-    Returns- None: The function performs updates and prints the outcome or error messages.
-    """
-    resolver = None
-    try:
-        print("updating status")
-        print(incident)
-        print(payload)
+def get_delimiter_pattern(workflow, subcategory, pattern):
+	"""
+	Retrieves a delimiter pattern containing the "start" and "end" text for a specific workflow and subcategory 
+	from the incident filter collection.
+	Arguments:
+	- workflow (str): The name of the workflow.
+	- subcategory (str): The subcategory type to match within the pattern elements.
+	- pattern (str): The specific pattern field name to project from the document.
+	Returns:- dict: A dictionary containing "start" and "end" keys if a matching delimiter pattern is found, otherwise an empty dictionary.
+	"""
+	delimiter_pattern = {}
+	search_result = None
+	try:
+		if all([workflow, subcategory,  pattern]):
+			search_criteria = {"toolName": ITSM_TOOL_NAME, "workflowName": workflow}
+			projection = {pattern}
+			search_result = get_single_document(INCIDENT_FILTER_COLLECTION, search_criteria, projection)
+		if search_result is not None and pattern in search_result:
+			print(search_result[pattern])
+			for element in search_result[pattern]:
+				if "type" in element and element["type"] == subcategory:
+					delimiter_pattern = {"start": element["startText"], "end": element["endText"]} 
+	except Exception as exception:
+		print(exception)
 
-        if status not in ["WIP", "RESOLVED"]:
-            payload["assignment_group"] = incident.get('resolver_id', None)
-            resolver = incident.get('resolver', None)
-            print(payload["assignment_group"])
+	return delimiter_pattern
 
-        if "close_notes" in payload:
-            payload['close_notes'] = payload["close_notes"].format(
-                                ALERT_TYPE=incident['alert_type'])
-        if "work_notes" in payload:
-            if  process_result is not None:
-                process_result = process_result.replace("\r\n", "")
-            else:
-                process_result = ""
-            payload["work_notes"] = payload["work_notes"].format(
-                                DEVICE_NAME=incident.get("device_name", None),
-                                ALERT_TYPE=incident.get("alert_type", None),
-                                THRESHOLD_VALUE=incident.get("threshold_value", None),
-                                TOTAL_USAGE=incident.get('total_usage',None),
-                                FAILURE_TYPE= incident.get('failureType',None),
-                                RESOLVER = resolver,
-                                PROCESS_RESULT  = process_result
-                                )      
-        print(f"updating incident for {status}")
-        print(update_incident(incident['sys_id'],payload))
-    except Exception as exception:
-        print(exception)
+def get_parsed_result(actual_text, start_text, end_text):
+	"""
+	Parses a substring from the actual text between the specified start and end texts. It also removes unwanted 
+	characters such as newlines and trims extra spaces from the result.
+	Arguments:
+	- actual_text (str): The full text from which to extract the substring.
+	- start_text (str): The text marking the start of the substring.
+	- end_text (str): The text marking the end of the substring.
+	Returns:str or None: The parsed and cleaned substring if found, otherwise None.
+	"""
+	result = None
+	if all([actual_text, start_text, end_text]):
+		try:
+			result = substring_by_text(actual_text, start_text, end_text)
+			if result is not None:
+				result = result.replace("\r\n", "")
+				result = result.replace("\r", "")
+				result = result.replace("\n", "")
+				result = result.replace(start_text, "")
+				result = result.replace(end_text, "")
+				result = result.strip()
+		except Exception as exception:
+			print(exception)
 
-def update_status(status,incident,process=None,process_result=None):
-    """
-    Updates the status of an incident based on a workflow configuration. The function retrieves 
-    the appropriate configuration for the status, formats the incident payload, and updates the 
-    incident status. If a result time is present, it updates the metrics accordingly.
-    Arguments:
-    - status (str): The status to update the incident with.
-    - incident (dict): A dictionary containing incident details such as result_time and attributes 
-    required for formatting the payload.
-    - process (optional): The process details associated with the incident, if any.
-    - process_result (optional, str): The result of the process, if available.
-    Returns:None: The function updates the incident and prints logs or error messages.
-    """
-    try:
-        cpu_config = get_workflow_config_value('CPUMEMORY_REMEDIATION_CONFIG')
-        if status in cpu_config:
-            incident_payload = cpu_config[status]['INCIDENT_PAYLOAD']
-            if process_result is not None:
-                update_incident_status(status,incident,incident_payload,process, process_result)  
-            else:
-                update_incident_status(status,incident,incident_payload)
-            if incident.get('result_time',None) is not None:
-                print('updating metrics')
-                update_metrics(incident['result_time'],
-                incident_payload['work_notes'])
-        else:
-            print(f"{status} is empty")
-    except Exception as exception:
-        print(exception)
+	return result
 
-def get_workflow_params(workflow,incident):
-    """
-    Retrieves and processes workflow parameters for an incident, extracting relevant details 
-    such as sys_id, device name, alert type, threshold value, and determining the device's type 
-    (Linux, SQL, Vault agent, etc.). Based on the extracted information, it assigns the appropriate 
-    resolver group and updates the incident status to 'WIP'. If specific conditions are met, it 
-    may escalate the status to 'ESCALATE_CLUSTER_SERVERS'.
-    Arguments:
-    - workflow (str): The name or identifier of the workflow.
-    - incident (dict): A dictionary containing incident details required for extracting parameters.
-    Returns:dict: A dictionary containing the configured device parameters, or None if required values are missing or if the workflow configuration is empty.
-    """
-    device_config=None
-    try:
-        workflow_config =get_workflow_payload(workflow,incident)
-        if workflow_config is not None:
-            sys_id = workflow_config.get('sysId',None)
-            incident_number = workflow_config.get('number',None)
-            device_name = workflow_config.get('deviceName',None)
-            alert_type = workflow_config.get("alertType",None)
-            threshold_value = workflow_config.get("thresholdValue",None)
-            condition_linux_check = workflow_config.get("conditionLinuxCheck", None)
-            print(sys_id,incident_number,device_name,alert_type,threshold_value)
-            if all([sys_id,incident_number,device_name,
-                    alert_type,threshold_value]):
-                if ("lnx" in device_name.lower() or condition_linux_check == True):
-                    is_linux = True
-                else:
-                    is_linux = False
-                is_sql = "sql" in device_name.lower()
-                is_comment_code = "comment" in device_name.lower()
-                print('is linux', is_linux)
-                is_vault_agent = "vault" in device_name.lower()
-                resolver_details = get_workflow_config_value("CPUMEMORY_RESOLVER_GROUP")
-                if is_linux:
-                    resolver_group = resolver_details.get("lnx", None)
-                if is_sql:
-                    resolver_group = resolver_details.get("sql", None)
-                if is_comment_code:
-                    resolver_group = resolver_details.get("commentCode", None)
-                if is_vault_agent:
-                    resolver_group = resolver_details.get("vaultAgent", None)
-                if not (is_linux or is_sql or is_comment_code or is_vault_agent):
-                    resolver_group = resolver_details.get("others", None)
-                resolver_id=resolver_group.get('resolverGroup', None)
-                resolver = resolver_group.get('resolver', None)
-                mail_address = resolver_group.get('mailAddress', None)
-                device_config = {'sys_id'         : sys_id,
-                                    'incident_id'    : incident_number,
-                                    'device_name'    : device_name,
-                                    'alert_type'     : alert_type.upper(),
-                                    'threshold_value': threshold_value,
-                                    'is_linux'       : is_linux,
-                                    'is_sql'         : is_sql,
-                                    'is_comment_code': is_comment_code,
-                                    'is_vault_agent' : is_vault_agent,
-                                    'resolver_id'    : resolver_id,
-                                    'resolver'       : resolver,
-                                    'mail_address'   : mail_address
-                                }
-                print('device config is')
-                print(device_config)
-                update_status('WIP',incident=device_config)
-                if is_comment_code or is_vault_agent:
-                    update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
-                    return device_config
-            else:
-                print("One of 5 values is missing. Cant start remediation")
-                return None
-        else:
-            print("Worfklow  Config is empty.")
-    except Exception as exception:
-        print(exception)
+def get_pattern_value(workflow, subcategory, description, pattern):
+	"""	
+	Extracts a delimited value from the incident description by applying a search pattern for a given workflow 
+	and subcategory. It uses delimiters defined in the filter collection to parse the result.
+	Arguments:
+	- workflow (str): The name of the workflow.
+	- subcategory (str): The subcategory of the incident.
+	- description (str): The description text of the incident.
+	- pattern (str): The search pattern field to extract delimiters for parsing.
+	Returns:str or None: The extracted and cleaned value from the description if successful, otherwise None.
+	"""
+	delimited_result = None
+	if all([workflow, description]):
+		try:
+			temp_result = get_delimiter_pattern(workflow, subcategory, pattern)
+			print("temp_result", temp_result)
+			if temp_result is not None:
+				start_value = temp_result.get("start")
+				end_value = temp_result.get("end")
+				delimited_result = get_parsed_result(description, start_value, end_value)
+				print("delimited_result",delimited_result)
+		except Exception as exception:
+			print(exception)
+
+	return delimited_result		
 
 
-def is_device_reachable(device_config):
-    """
-    Checks the reachability status of a device based on its configuration. It first checks if the 
-    device is reachable via ping, then verifies its accessibility over SSH (for Linux devices) or 
-    WinRM (for non-Linux devices). The function returns the status of the device based on the 
-    reachability checks.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details such as device_name,and whether the device is Linux or not.
-    Returns:str: A string indicating the reachability status ("Success", "Ping Failure", "SSH Failure", 
-    "Winrm Failure").
-    """
-    status = None
-    try: 
-        if device_config is not None: 
-            retry_count = get_workflow_config_value("REMEDIATION_RETRY_COUNT")
-            if retry_count is None:
-                retry_count = 3
-            if is_ping_success(device_config['device_name'],retry_count):
-                if device_config['is_linux']:
-                    if get_ssh_reachable_status(device_config['device_name']):
-                        status = "Success"
-                        print("Success")
-                    else:
-                        status = "SSH Failure"
-                        print("SSH Failure")
-                else:
-                    if get_winrm_reachable_status(device_config['device_name']) == 'Success':
-                        status = "Success"
-                        print(status)
-                    else:
-                        status = "Winrm Failure"
-                        print(status)
-            else:
-                status="Ping Failure"
-                print("Ping Failure")
-        else:
-            print("Device Config is empty.")
-        if status == "Success":
-            return "Success"
-        else:
-            return device_unreachable_status(device_config,status)
-    except Exception as exception:
-        print(exception)
-   
-
-
-def resolve_ticket(device_config,total_usage):
-    """
-    Updates the incident status to "RESOLVED" with the provided device configuration and total usage 
-    data. The device configuration is updated with the total usage before calling the update_status 
-    function to mark the incident as resolved.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details.
-    - total_usage (float): The total usage value to be added to the device configuration.
-    Returns:- None
-    """
-    try:
-        print(device_config)
-        print(total_usage)
-        if device_config is not None and total_usage is not None:
-            device_config['total_usage'] = total_usage
-            update_status('RESOLVED',incident=device_config)
-        else:
-            print("Device Config or actual value is empty.")
-    except Exception as exception:
-        print(exception)
-
-
-def device_unreachable_status(device_config,failureStatus):
-    """
-    Handles the escalation process when a device is unreachable. It checks the CPU/Memory remediation 
-    configuration to determine if the failure status should lead to an "ESCALATE_DEVICE_UNREACHABLE" 
-    status. If the failure status and device configuration are provided, it updates the incident with 
-    the failure type and triggers the status update.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details.
-    - failureStatus (str): The failure status indicating the reason for the device's unreachability.
-    Returns- None
-    """
-    try:
-        cpu_memory_config = get_workflow_config_value('CPUMEMORY_REMEDIATION_CONFIG')
-        if cpu_memory_config is not None and "ESCALATE_DEVICE_UNREACHABLE" in cpu_memory_config:
-            print(failureStatus)
-            if device_config is not None and failureStatus is not None:
-                device_config['failureType'] = failureStatus
-                device_config['result_time'] = 1
-                update_status('ESCALATE_DEVICE_UNREACHABLE',incident=device_config)
-        else:
-            print("Device Config or ping output is empty.")
-    except Exception as exception:
-        print(exception)
-
-
-def get_resource_usage(device_config):
-    """
-    Fetches and processes the resource usage (CPU or Memory) for a device. The function determines 
-    whether the device is Linux-based or not and retrieves the appropriate resource usage values 
-    based on the alert type (CPU or MEMORY). If the actual resource usage exceeds the specified 
-    threshold, the ticket is resolved. If the device is unreachable or an error occurs, it triggers 
-    an escalation status.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details, such as device name, 
-    threshold value, alert type, and whether the device is Linux-based.
-    Returns-str: Returns "end_remediation" if there is an issue, or triggers ticket resolution based on the 
-    threshold condition.
-    """
-    actual_threshold = None
-    try:
-        retry_count = get_workflow_config_value("REMEDIATION_RETRY_COUNT")
-        if device_config is not None and retry_count is not None :
-            device_name = device_config["device_name"]
-            threshold_value = device_config["threshold_value"]
-            alert_type = device_config["alert_type"]
-            is_linux = device_config['is_linux']
-            if alert_type == 'CPU':
-                if is_linux:
-                    actual_threshold = get_top_cpu_consuming(device_name,retry_count)
-                else:
-                    actual_threshold = get_total_cpu_usage(device_name,retry_count)
-            elif alert_type == 'MEMORY':
-                if is_linux:
-                    actual_threshold = get_top_memory_consuming(device_name,retry_count)
-                else:
-                    actual_threshold = get_total_memory_usage(device_name,retry_count)
-            if actual_threshold is not None:
-                print(actual_threshold)
-                actual_threshold = actual_threshold.encode().decode().strip()
-                print('actual thresold is')
-                print(actual_threshold)
-            else:
-                print("Threshold empty")
-                device_config['failureType'] = "SSH Failure"
-                device_config['result_time'] = 3
-                update_status('ESCALATE_DEVICE_UNREACHABLE',incident=device_config)
-                
-            if float(actual_threshold) <= float(threshold_value):
-                return resolve_ticket(device_config,actual_threshold)
-            else:
-                return resolve_ticket(device_config,actual_threshold,retry_count)
-        else:
-            print("Device Config is None")
-            return 'end_remediation'
-    except Exception as exception:
-        print(exception)
-        return 'end_remediation'
-
-def escalate_ticket(device_config,total_usage,retry_count):
-    """
-    Escalates the ticket if the resource usage (CPU or Memory) exceeds a specified threshold. The 
-    function retrieves the top resource-consuming processes for the device (based on whether it's 
-    Linux or not) and triggers an escalation if the process information is available. The status is 
-    updated with the top processes and their results.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details, such as device name, 
-    alert type, and whether the device is Linux-based.
-    - total_usage (float): The total resource usage value.
-    - retry_count (int): The number of retries for fetching resource data.
-    Returns:None
-    """
-    try:
-        if all([device_config,total_usage,retry_count]):
-            device_config['total_usage'] = total_usage
-            if device_config["alert_type"] == 'CPU':
-                result = None
-                if device_config['is_linux']:
-                    print("linux case")
-                    top_process = get_top_cpu_consuming_process(
-                        device_config['device_name'],5,retry_count)
-                    print(top_process)
-                    result = get_result_table(top_process,True)
-                else:
-                    top_process = get_top_cpu_process(
-                        device_config["device_name"],5,retry_count)
-                    print(top_process)
-                    if top_process is not None:
-                        top_process = top_process.split('~~~')[:-1]
-                        result = get_result_table(top_process,False)
-                if result is not None:
-                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',
-                    incident=device_config,process=top_process,process_result=result)
-                else:
-                    print("CPU Top Process Result is empty")
-
-            elif device_config["alert_type"] == 'MEMORY':
-                if device_config['is_linux']:
-                    print('linux case')
-                    top_process = get_top_memory_consuming_process(
-                        device_config['device_name'],5,retry_count)
-                    result = get_result_table(top_process,True)
-                else:
-                    top_process = get_top_memory_process(
-                        device_config["device_name"],5,retry_count)
-                    if top_process is not None:
-                        top_process = top_process.split('~~~')[:-1]
-                        result = get_result_table(top_process,False)
-                if result is not None:
-                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',
-                    incident=device_config,process=top_process,process_result=result)
-                else:
-                    print("Memory Top Process Result is None.")
-        else:
-            print('Device config is none.')
-    except Exception as exception:
-        print(exception)
-
-    
+def get_workflow_payload(workflow,incident):
+	"""	
+	This function constructs a payload dictionary for an incident based on the given workflow and incident details. 
+	It extracts relevant fields such as device name, service name, alert type, and threshold values by parsing the 
+	incident description and applying search patterns.
+	Arguments:
+	- workflow (str): The name of the workflow, such as "HIGH RESOURCE USAGE" or "SERVICERESTART".
+	- incident (dict): A dictionary containing incident details, which may include "subcategory", "description", 
+	"sys_id", "number", "alertType", etc.
+	Returns:
+	dict or None: A dictionary containing the constructed payload with fields such as "sysId", "number", 
+	"deviceName", "thresholdValue", "alertType", and "conditionLinuxCheck". If essential data is missing, 
+	it returns None.
+	"""
+	payload = {}
+	subcategory = None
+	description = None
+	device_name = None
+	alert_type = None
+	search_pattern = None
+	service_name=None
+	if incident is not None:
+		search_pattern = "deviceNamePatterns"
+		subcategory = incident.get("subcategory")
+		description = incident.get("description")			
+		payload["sysId"] = incident.get("sys_id")
+		payload["number"] = incident.get("number")
+		device_name = get_pattern_value(workflow, subcategory, description, search_pattern)
+		if device_name is not None:
+			device_name = device_name.strip()
+		else:
+			print("No device name in incident details")
+	
+	if workflow == "CPUMemoryResourceRemediation":
+		alert_type = incident.get("alertType")
+		search_pattern = "thresholdValuePatterns"
+		temp_subcategory = "{} {}".format(subcategory, alert_type)
+		threshold_value = get_pattern_value(workflow, temp_subcategory, description, search_pattern)
+		print("threshold_value", threshold_value)
+		if threshold_value is not None:
+			payload["thresholdValue"] = threshold_value.strip()
+		else:
+			payload = None
+		payload["alertType"] = alert_type
+		is_linux_pattern = "linuxConditionPatterns"
+		is_linux = get_pattern_value(workflow, subcategory, description, is_linux_pattern)
+		print(is_linux)
+		if "linux" in is_linux.lower():
+			payload["conditionLinuxCheck"] = True
+		else:
+			payload["conditionLinuxCheck"] = False
+		if all([payload["sysId"],payload["number"],device_name,alert_type,threshold_value]):
+			if ("lnx" in device_name.lower() or payload["conditionLinuxCheck"] == True):
+				is_linux = True
+			else:
+				is_linux = False
+			is_sql = "sql" in device_name.lower()
+			is_comment_code = "comment" in device_name.lower()
+			print('is linux', is_linux)
+			is_vault_agent = "vault" in device_name.lower()
+			resolver_details = get_workflow_config_value("CPUMEMORY_RESOLVER_GROUP")
+			if is_linux:
+				resolver_group = resolver_details.get("lnx", None)
+			if is_sql:
+				resolver_group = resolver_details.get("sql", None)
+			if is_comment_code:
+				resolver_group = resolver_details.get("commentCode", None)
+			if is_vault_agent:
+				resolver_group = resolver_details.get("vaultAgent", None)
+			if not (is_linux or is_sql or is_comment_code or is_vault_agent):
+				resolver_group = resolver_details.get("others", None)
+			resolver_id=resolver_group.get('resolverGroup', None)
+			resolver = resolver_group.get('resolver', None)
+			mail_address = resolver_group.get('mailAddress', None)
+			device_config = {'sys_id'         : payload["sys_id"],
+								'incident_id'    : payload["number"],
+								'device_name'    : device_name,
+								'alert_type'     : alert_type.upper(),
+								'threshold_value': threshold_value,
+								'is_linux'       : is_linux,
+								'is_sql'         : is_sql,
+								'is_comment_code': is_comment_code,
+								'is_vault_agent' : is_vault_agent,
+								'resolver_id'    : resolver_id,
+								'resolver'       : resolver,
+								'mail_address'   : mail_address
+							}
+			print('device config is')
+			print(device_config)
+			return device_config
+	elif workflow=="ServiceRestartRemediation":
+		service_name=get_pattern_value(workflow,subcategory,description,"serviceNamePatterns")
+		service_name=service_name.strip()
+	
+	if device_name is not None:
+		payload["deviceName"] = device_name
+	if service_name is not None:
+		payload["serviceName"] = service_name
+	
+	print("payload", payload)		
+	return payload
