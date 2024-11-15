@@ -77,7 +77,7 @@ def is_device_reachable(device_config):
     
 def service_remediation(incident):
     """
-    This functions helps in remediating service by restarting it on a remote windows device. It first checks if the device is reachable. 
+    This function performs end to end remediation for service. It first checks if the device is reachable. 
     If the device is reachable, it checks the state of the service and takes action to restart 
     it if necessary. It then resolves or escalates the incident based on the outcome of the remediation.
     Arguments- incident (dict): A dictionary containing the incident details, including device name and service name.
