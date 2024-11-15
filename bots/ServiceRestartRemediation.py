@@ -75,10 +75,9 @@ def is_device_reachable(device_config):
         print(exception)
 
     
-def service_remediation(incident):
+def service_remediation(payload):
     """
-    Attempts to remediate a service issue on a remote device based on the provided payload. 
-    The function performs the following tasks:
+    Attempts to remediate a service issue on a remote device based on the provided payload.The function performs the following tasks:
     1. Validates the provided payload and sets a service ticket to an "in-progress" state.
     2. Checks if the specified device is reachable.
     3. Retrieves the status of the service on the device:
@@ -93,11 +92,9 @@ def service_remediation(incident):
         payload (dict): A dictionary containing configuration details, expected to include:
         - 'deviceName' (str): The name of the device.
         - 'serviceName' (str): The name of the service to be remediated.
-    Return-None
     """
     try:
         state = None
-        payload = get_workflow_payload(workflow_name,incident)
         if payload is not None:
             # set the ticket to in-progress state
             resolve_ticket(payload,True,None)
@@ -135,7 +132,7 @@ def service_remediation(incident):
 def resolve_ticket(device_config,wip=False,service_state=None):
     """
     Resolves the incident ticket by updating its state and incident payload. 
-    If the 'wip' flag is set to True, it updates the ticket status to "Work In Progress" 
+    If the 'wip' flag is set to True, it updates the ticket status to "well In Progress" 
     using the provided workflow configuration. If 'wip' is False, the function checks the 
     provided service state and updates the ticket with appropriate work and close notes.
     Arguments:
