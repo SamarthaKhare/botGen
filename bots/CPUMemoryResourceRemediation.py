@@ -182,9 +182,8 @@ def is_device_reachable(device_config):
    
 def resolve_ticket(device_config,total_usage):
     """
-    Updates the incident status to "RESOLVED" with the provided device configuration and total usage 
-    data. The device configuration is updated with the total usage before calling the update_status 
-    function to mark the incident as resolved.
+    Updates the incident status to "RESOLVED" with the provided device configuration and total cpu resource usage 
+    The device configuration is updated with the total usage before calling the update_status function to mark the incident as resolved.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details.
     - total_usage (float): The total usage value to be added to the device configuration.
@@ -229,15 +228,20 @@ def device_unreachable_status(device_config,failureStatus):
 
 def get_resource_usage(device_config):
     """
-    Fetches and processes the resource usage (CPU or Memory) for a device. The function determines 
-    whether the device is Linux-based or not and retrieves the appropriate resource usage values 
-    based on the alert type (CPU or MEMORY). If the actual resource usage exceeds the specified 
-    threshold, the ticket is escalated otherwise its resolved.If the device is unreachable or an error occurs, it triggers 
-    an escalation status.It also update the status of current incident to 'WIP'
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details, such as device name, 
-    threshold value, alert type, and whether the device is Linux-based.
-    Returns-None.
+    Evaluates the resource usage of a device and performs actions based on predefined thresholds 
+    for CPU or memory. Handles both Linux and non-Linux systems and supports escalation if needed.
+    Steps:
+    1. Retrieves the retry count from the workflow configuration and updates the incident status to "WIP".
+    2. If conditions like 'is_comment_code' or 'is_vault_agent' are true, escalates to cluster servers.
+    3. Extracts device details, including `device_name`, `threshold_value`, and `alert_type`.
+    4. Fetches resource usage based on the device type and alert type (CPU or MEMORY).
+    5. If usage data is available, compares it to the threshold:
+       - Resolves the ticket if usage is within the threshold.
+       - Escalates the ticket if usage exceeds the threshold.
+    6. Escalates for SSH failure if usage data is not retrievable.
+    7. Catches and logs any exceptions encountered.
+    Args:
+        device_config (dict): Device configuration, including device_name,threshold_value,alert_type etc
     """
     actual_threshold = None
     try:
