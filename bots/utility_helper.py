@@ -35,33 +35,27 @@ def remove_spaces(value):
         return value
 
 def get_workflow_payload(incident):
-    """
-    Extracts device configuration/remediation inputs from the description field of an incident .
-    The function uses a regular expression pattern to search for matches in the format "Key: Value" 
-    within the incident description, and then it creates a dictionary with the extracted data.
-    Arguments:Incident (dict): A dictionary containing the incident details, where 'description' is a key that 
-    holds a string with key-value pairs in the format "Key: Value".
-    Returns:dict: A dictionary containing the extracted key-value pairs from the incident description.
-    """
+   
     #search pattern
     pattern = r"(\w+(?: \w+)*):\s*([^\n:]+)"
     # Find all matches
-    print(incident)
     matches = re.findall(pattern, incident['description'])
     #Convert matches to a dictionary
     device_config = {key.strip(): value.strip() for key, value in matches}
+    description = incident.get("description")			
+    sys_id=incident.get("sys_id")
+    number= incident.get("number")
+    device_config['sys_id']=sys_id
+    device_config['number']=number
+    device_config['description']=description
     return device_config
 
-def search_incidents(filter_query):
-	"""
-	This function searches for incidents in Service Now using a specified filter pattern.
-	Args:filter_pattern (str): The pattern to filter incidents of Service Now.
-	Returns:The list of all the incident that matches with the filter patter, otherwise None.
-	"""
+def search_incident(filter_query):
+	
 	result = None
 	try:
 		base = f"https://{os.getenv('SN_INSTANCE')}.service-now.com"
-		path =base+ f"/api/now/v2/table/incident?sysparm_query=state=1^ORstate=2^{filter_query}"
+		path =base+ f"/api/now/v2/table/incident?sysparm_query={filter_query}^state=1^ORstate=2"
 		
 		response = requests.request("get", path, headers = headers,auth=authentication)
 		if response is not None and response.status_code == 200:
