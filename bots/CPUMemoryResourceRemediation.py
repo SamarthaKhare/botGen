@@ -1,17 +1,20 @@
-
+import os
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
-from zif_workflow_helper import get_workflow_config_value
 from zif_service_bot import get_automation_status_payloads, insert_automation_status
 from remote_connection_helper import is_ping_success,get_winrm_reachable_status,get_ssh_reachable_status
 from uniconn.servicenow import update_incident
-from GetServiceNowIncidents import get_workflow_payload
+from dotenv import load_dotenv
+dir=os.path.dirname(os.path.abspath(__file__))
+dotenv_path = f"{dir}/../../.env"
+load_dotenv(dotenv_path=dotenv_path)
+
 
 workflow_name = 'CPUMemoryResourceRemediation'
 
 def get_result_table(result,is_linux):
     """
-    Generates an HTML table representation of the resource-consuming processes based on the provided 
-    result data. If the device is Linux-based, it formats the data into rows with process information 
+    Generates an HTML table representation of the resource-consuming processes based on the provided result data. 
+    If the device is Linux-based,it formats the data into rows with process information 
     in each cell. If the device is not Linux-based, it formats the data differently. The table is 
     formatted with specific styling for better readability.
     Arguments:
@@ -85,8 +88,7 @@ def update_incident_status(status,incident,payload,process=None,process_result=N
             print(payload["assignment_group"])
 
         if "close_notes" in payload:
-            payload['close_notes'] = payload["close_notes"].format(
-                                ALERT_TYPE=incident['alert_type'])
+            payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident['alert_type'])
         if "work_notes" in payload:
             if  process_result is not None:
                 process_result = process_result.replace("\r\n", "")
@@ -120,7 +122,7 @@ def update_status(status,incident,process=None,process_result=None):
     Returns:None: The function updates the incident and prints logs or error messages.
     """
     try:
-        cpu_config = get_workflow_config_value('CPUMEMORY_REMEDIATION_CONFIG')
+        cpu_config = os.getenv('mongo_config')
         if status in cpu_config:
             incident_payload = cpu_config[status]['INCIDENT_PAYLOAD']
             if process_result is not None:
@@ -149,7 +151,7 @@ def is_device_reachable(device_config):
     status = None
     try: 
         if device_config is not None: 
-            retry_count = get_workflow_config_value("REMEDIATION_RETRY_COUNT")
+            retry_count = 3
             if retry_count is None:
                 retry_count = 3
             if is_ping_success(device_config['device_name'],retry_count):
@@ -212,7 +214,7 @@ def device_unreachable_status(device_config,failureStatus):
     Returns- None
     """
     try:
-        cpu_memory_config = get_workflow_config_value('CPUMEMORY_REMEDIATION_CONFIG')
+        cpu_memory_config = os.get('mongo_config')
         if cpu_memory_config is not None and "ESCALATE_DEVICE_UNREACHABLE" in cpu_memory_config:
             print(failureStatus)
             if device_config is not None and failureStatus is not None:
@@ -244,11 +246,12 @@ def get_resource_usage(device_config):
     """
     actual_threshold = None
     try:
-        retry_count = get_workflow_config_value("REMEDIATION_RETRY_COUNT")
+        retry_count = 3
         if device_config is not None and retry_count is not None :
             update_status('WIP',incident=device_config)
             if device_config['is_comment_code'] or device_config['is_vault_agent']:
                 update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
+                return
             device_name = device_config["device_name"]
             threshold_value = device_config["threshold_value"]
             alert_type = device_config["alert_type"]
@@ -303,8 +306,7 @@ def escalate_ticket(device_config,total_usage,retry_count):
                 result = None
                 if device_config['is_linux']:
                     print("linux case")
-                    top_process = get_top_cpu_consuming_process(
-                        device_config['device_name'],5,retry_count)
+                    top_process = get_top_cpu_consuming_process(device_config['device_name'],5,retry_count)
                     print(top_process)
                     result = get_result_table(top_process,True)
                 else:
@@ -315,26 +317,22 @@ def escalate_ticket(device_config,total_usage,retry_count):
                         top_process = top_process.split('~~~')[:-1]
                         result = get_result_table(top_process,False)
                 if result is not None:
-                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',
-                    incident=device_config,process=top_process,process_result=result)
+                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
                 else:
                     print("CPU Top Process Result is empty")
 
             elif device_config["alert_type"] == 'MEMORY':
                 if device_config['is_linux']:
                     print('linux case')
-                    top_process = get_top_memory_consuming_process(
-                        device_config['device_name'],5,retry_count)
+                    top_process = get_top_memory_consuming_process(device_config['device_name'],5,retry_count)
                     result = get_result_table(top_process,True)
                 else:
-                    top_process = get_top_memory_process(
-                        device_config["device_name"],5,retry_count)
+                    top_process = get_top_memory_process(device_config["device_name"],5,retry_count)
                     if top_process is not None:
                         top_process = top_process.split('~~~')[:-1]
                         result = get_result_table(top_process,False)
                 if result is not None:
-                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',
-                    incident=device_config,process=top_process,process_result=result)
+                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
                 else:
                     print("Memory Top Process Result is None.")
         else:
