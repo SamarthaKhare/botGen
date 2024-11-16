@@ -6,31 +6,6 @@ from zif_workflow_helper import get_workflow_config_value
 
 headers = {"Content-Type": "application/json"}
 
-def search_incidents(filter_pattern):
-	"""
-	This function searches for incidents in ServiceNow using a specified filter pattern.
-	Args:filter_pattern (str): The pattern to filter incidents in ServiceNow.
-	Returns:dict or None: The result of the search operation in JSON format if successful, otherwise None.
-	"""
-	result = None
-	try:
-		base_resource = os.environ["UNICONN_API_URL"]
-		endpoint = get_workflow_config_value("UNICONN_IMPORT_ENDPOINT")
-		path = "{}{}".format(base_resource, endpoint)
-		request_payload = {
-			"operation": "REMEDIATE_ITSM",
-			"exportedTool": "ServiceNow",
-			"payload": {
-				"apiFilter": filter_pattern
-			}
-		}
-		response = requests.request("POST", path, headers = headers, data = json.dumps(request_payload))
-		if response is not None and response.status_code == 200:
-			result = response.json()
-	except Exception as exception:
-		print(exception)
-	return result
-
 def update_incident(sys_id, payload):
 	"""	
 	This function updates an incident in ServiceNow using the provided system ID and payload.
@@ -41,8 +16,9 @@ def update_incident(sys_id, payload):
 	"""
 	result = "NO RESULT"
 	try:
-		base_resource = os.environ["UNICONN_API_URL"]
-		endpoint = get_workflow_config_value("UNICONN_EXPORT_ENDPOINT")
+		base_resource = base = f"https://{os.getenv('SN_INSTANCE')}.service-now.com"
+		#endpoint = get_workflow_config_value("UNICONN_EXPORT_ENDPOINT")
+		endpoint=f"/api/now/v2/table/incident/{sys_id}"
 		path = "{}{}".format(base_resource, endpoint)
 		request_payload = {
 			"operation": "REMEDIATE_ITSM",
