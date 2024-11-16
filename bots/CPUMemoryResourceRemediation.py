@@ -214,7 +214,7 @@ def device_unreachable_status(device_config,failureStatus):
     Returns- None
     """
     try:
-        cpu_memory_config = os.get('mongo_config')
+        cpu_memory_config = os.getenv('mongo_config')
         if cpu_memory_config is not None and "ESCALATE_DEVICE_UNREACHABLE" in cpu_memory_config:
             print(failureStatus)
             if device_config is not None and failureStatus is not None:
