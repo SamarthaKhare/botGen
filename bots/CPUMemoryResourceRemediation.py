@@ -1,12 +1,13 @@
-import os
+
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
-from zif_service_bot import get_automation_status_payloads, insert_automation_status
+#from zif_service_bot import get_automation_status_payloads, insert_automation_status
 from remote_connection_helper import is_ping_success,get_winrm_reachable_status,get_ssh_reachable_status
-from uniconn.servicenow import update_incident
-from dotenv import load_dotenv
-dir=os.path.dirname(os.path.abspath(__file__))
-dotenv_path = f"{dir}/../../.env"
-load_dotenv(dotenv_path=dotenv_path)
+from servicenow import update_incident
+import sys
+import os
+# Add the parent directories to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+from mongo_config import MONGO_CONFIG  # Import the MONGO_CONFIG
 
 
 workflow_name = 'CPUMemoryResourceRemediation'
@@ -122,7 +123,7 @@ def update_status(status,incident,process=None,process_result=None):
     Returns:None: The function updates the incident and prints logs or error messages.
     """
     try:
-        cpu_config = os.getenv('mongo_config')
+        cpu_config = MONGO_CONFIG["value"]
         if status in cpu_config:
             incident_payload = cpu_config[status]['INCIDENT_PAYLOAD']
             if process_result is not None:
@@ -214,7 +215,7 @@ def device_unreachable_status(device_config,failureStatus):
     Returns- None
     """
     try:
-        cpu_memory_config = os.getenv('mongo_config')
+        cpu_memory_config = MONGO_CONFIG["value"]
         if cpu_memory_config is not None and "ESCALATE_DEVICE_UNREACHABLE" in cpu_memory_config:
             print(failureStatus)
             if device_config is not None and failureStatus is not None:
