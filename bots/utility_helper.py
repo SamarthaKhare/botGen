@@ -36,6 +36,7 @@ def remove_spaces(value):
 
 def get_workflow_payload(incident):
     """
+        Extract the relevant input parameters/device configuration from the incident description 
     """
     #search pattern
     pattern = r"(\w+(?: \w+)*):\s*([^\n:]+)"
@@ -53,6 +54,7 @@ def get_workflow_payload(incident):
 
 def search_incident(filter_query):
 	"""
+      	    filter out the service now incident and returns a list of incident which matches the provided filer  
  	"""
 	result = None
 	try:
