@@ -1,6 +1,5 @@
 
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
-#from zif_service_bot import get_automation_status_payloads, insert_automation_status
 from remote_connection_helper import is_ping_success,get_winrm_reachable_status,get_ssh_reachable_status
 from servicenow import update_incident
 import sys
@@ -49,19 +48,6 @@ def get_result_table(result,is_linux):
     except Exception as exception:
         print(exception)
     return table_result
-
-def update_metrics(result_time,remarks):
-    try:
-        effort_config = get_workflow_config_value("REMEDIATE_EFFORT_SAVINGS")
-        if effort_config is not None and workflow_name.upper() in effort_config:
-            effort_saving = effort_config[workflow_name.upper()]
-            status_payload = get_automation_status_payloads(
-                workflow_name, result_time, True,
-                'Completed', remarks, effort_saving)
-            if status_payload is not None:
-                insert_automation_status(status_payload)
-    except Exception as exception:
-        print(exception)
 
 def update_incident_status(status,incident,payload,process=None,process_result=None):
     """
@@ -130,10 +116,6 @@ def update_status(status,incident,process=None,process_result=None):
                 update_incident_status(status,incident,incident_payload,process, process_result)  
             else:
                 update_incident_status(status,incident,incident_payload)
-            if incident.get('result_time',None) is not None:
-                print('updating metrics')
-                update_metrics(incident['result_time'],
-                incident_payload['work_notes'])
         else:
             print(f"{status} is empty")
     except Exception as exception:
