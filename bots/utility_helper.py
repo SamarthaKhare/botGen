@@ -35,7 +35,8 @@ def remove_spaces(value):
         return value
 
 def get_workflow_payload(incident):
-   
+    """
+    """
     #search pattern
     pattern = r"(\w+(?: \w+)*):\s*([^\n:]+)"
     # Find all matches
@@ -51,7 +52,8 @@ def get_workflow_payload(incident):
     return device_config
 
 def search_incident(filter_query):
-	
+	"""
+ 	"""
 	result = None
 	try:
 		base = f"https://{os.getenv('SN_INSTANCE')}.service-now.com"
