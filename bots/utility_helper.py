@@ -42,7 +42,7 @@ def get_workflow_payload(incident):
 	"sys_id", "number", "alertType", etc.
 	Returns:
 	dict or None: A dictionary containing the constructed payload with fields such as "sysId", "number", 
-	"deviceName", "thresholdValue", "alertType", and "conditionLinuxCheck". If essential data is missing, 
+	"deviceName", "thresholdValue", "alertType", and "is_linux","serviceName". If essential data is missing, 
 	it returns None.
     """
     #search pattern
@@ -57,6 +57,9 @@ def get_workflow_payload(incident):
     device_config['sys_id']=sys_id
     device_config['number']=number
     device_config['description']=description
+    for key, value in device_config.items():
+        if isinstance(value, str) and value.lower() in ['true', 'false']:
+            device_config[key] = value.lower() == 'true'
     print(device_config)
     return device_config
 
