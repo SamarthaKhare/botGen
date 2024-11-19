@@ -232,7 +232,7 @@ def get_resource_usage(device_config):
         retry_count = 3
         if device_config is not None and retry_count is not None :
             update_status('WIP',incident=device_config)
-            if device_config['is_comment_code'] is not None or device_config['is_vault_agent'] is not None:
+            if device_config['is_comment_code'] or device_config['is_vault_agent']:
                 update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
                 return
             device_name = device_config["device_name"]
