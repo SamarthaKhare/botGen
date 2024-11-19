@@ -259,6 +259,7 @@ def get_resource_usage(device_config):
                 device_config['failureType'] = "SSH Failure"
                 device_config['result_time'] = 3
                 update_status('ESCALATE_DEVICE_UNREACHABLE',incident=device_config)
+                return
                 
             if float(actual_threshold) <= float(threshold_value):
                 return resolve_ticket(device_config,actual_threshold)
