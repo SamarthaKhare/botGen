@@ -24,6 +24,7 @@ def update_incident(sys_id, payload):
 		endpoint=f"/api/now/v2/table/incident/{sys_id}"
 		path = "{}{}".format(base_resource, endpoint)
 		print(path)
+		print(payload)
 		response = requests.request("PATCH",path, headers=headers, data=json.dumps(payload),auth=authentication)
 		if response is not None and response.status_code == 200:
 			result = "SUCCESS"
