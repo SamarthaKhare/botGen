@@ -90,7 +90,7 @@ def substring_by_string_text(source, start_text, end_text):
 		start_text (str): The text indicating the start of each substring.
 		end_text (str): The text indicating the end of each substring.
 	Returns: str: A concatenated and formatted string of all extracted substrings.
-    """
+   	"""
 	result_data = []
 	tmp = source.split(start_text)
 	for par in tmp:
