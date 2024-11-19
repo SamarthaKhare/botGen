@@ -131,6 +131,7 @@ def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
                 $Result = $Result | Format-Table -HideTableHeaders
                 echo $Result"""
             result = get_winrm_result(host_name, command,is_ntlm)
+            print(f" result of get_total_memory_usage is:{result}")
             if result is not None:
                 result = result.strip()
     except Exception as exception:
