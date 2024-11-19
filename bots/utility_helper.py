@@ -38,8 +38,7 @@ def get_workflow_payload(incident):
     """
 	This function extracts the relevant input parameters/device configuration such as device name, service name, alert type, 
  	and threshold values by parsing the incident description and applying search patterns.
-	Arguments:- workflow (str): The name of the workflow, such as "HIGH RESOURCE USAGE" or "SERVICERESTART".
-	- incident (dict): A dictionary containing incident details, which may include "subcategory", "description", 
+	Arguments:- incident (dict): A dictionary containing incident details, which may include "subcategory", "description", 
 	"sys_id", "number", "alertType", etc.
 	Returns:
 	dict or None: A dictionary containing the constructed payload with fields such as "sysId", "number", 
