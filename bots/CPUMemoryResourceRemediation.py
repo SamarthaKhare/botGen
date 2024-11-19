@@ -66,8 +66,7 @@ def update_incident_status(status,incident,payload,process=None,process_result=N
     resolver = None
     try:
         print("updating status")
-        print(incident)
-        print(payload)
+        print(f"Current payload is : {payload}")
 
         if status not in ["WIP", "RESOLVED"]:
             payload["assignment_group"] = incident.get('resolver_id', None)
@@ -232,7 +231,7 @@ def get_resource_usage(device_config):
         retry_count = 3
         if device_config is not None and retry_count is not None :
             update_status('WIP',incident=device_config)
-            if device_config['is_comment_code'] or device_config['is_vault_agent']:
+            if device_config['is_comment_code']=='True' or device_config['is_vault_agent']=='True':
                 update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
                 return
             device_name = device_config["device_name"]
