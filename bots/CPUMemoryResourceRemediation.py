@@ -239,6 +239,7 @@ def get_resource_usage(device_config):
             threshold_value = device_config["threshold_value"]
             alert_type = device_config["alert_type"]
             is_linux = device_config['is_linux']
+            print(threshold_value)
             if alert_type == 'CPU':
                 if is_linux:
                     actual_threshold = get_top_cpu_consuming(device_name,retry_count)
