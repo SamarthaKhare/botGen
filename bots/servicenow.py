@@ -13,9 +13,8 @@ authentication = HTTPBasicAuth(os.getenv('SN_USERNAME'), os.getenv('SN_PASSWORD'
 def update_incident(sys_id, payload):
 	"""	
 	This function updates an incident in ServiceNow using the provided system ID and payload.
-	Args:
-		sys_id (str): The system ID of the incident to be updated.
-		payload (dict): A dictionary containing the data to update the incident with.
+	Args:sys_id (str): The system ID of the incident to be updated.
+	     payload (dict): A dictionary containing the data to update the incident with.
 	Returns:str: "SUCCESS" if the update is successful, "ERROR" if an error occurs, or "NO RESULT" if no response is received.
 	"""
 	result = "NO RESULT"
