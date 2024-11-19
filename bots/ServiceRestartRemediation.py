@@ -63,9 +63,8 @@ def is_device_reachable(device_config):
     
 def service_remediation(payload):
     """
-    This function either resolves or escaltes the incident for service issue by restarting.It utilizes the service name and device name from the device configuration.
-    After checking the reachablity of device it checks the service status on it and if needed restart it. This function resolves or escaltes the incident according
-    to service status and errors in restarting it.
+    Takes action to either resolves or escaltes the incident for service issue by restarting.It utilizes the service name and device name from the device configuration.
+    After checking the reachablity of device it checks the service status on it and if needed restart it thus providing end to end remediation for any service related issues
     Args: device congiguration (needs device name and service name from it)
     Returns- None 
     """
