@@ -63,8 +63,8 @@ def is_device_reachable(device_config):
     
 def service_remediation(payload):
     """
-    Attempts to remediate a service issue by restarting it on a remote device end to end based on the provided payload.The function performs the following tasks:
-    1. Validates the provided payload and sets a service ticket to an "in-progress" state.
+    End to end remediation of service issue by restarting it on a remote device based on the provided device configuration.The function performs the following tasks:
+    1. Validates the device configuration and sets a service ticket to an "in-progress" state.
     2. Checks if the specified device is reachable.
     3. Retrieves the status of the service on the device:
         - If the service status is 'Stopped', the function attempts to restart it.
