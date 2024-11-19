@@ -57,6 +57,7 @@ def get_workflow_payload(incident):
     device_config['sys_id']=sys_id
     device_config['number']=number
     device_config['description']=description
+    print(device_config)
     return device_config
 
 def search_incident(filter_query):
