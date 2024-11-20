@@ -1,28 +1,15 @@
 
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
-from remote_connection_helper import is_ping_success,get_winrm_reachable_status,get_ssh_reachable_status
 from servicenow import update_incident
 import sys
 import os
 # Add the parent directories to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from mongo_config import MONGO_CONFIG  # Import the MONGO_CONFIG
-
-
 workflow_name = 'CPUMemoryResourceRemediation'
 
 def get_result_table(result,is_linux):
     """
-    Generates an HTML table representation of the resource-consuming processes based on the provided result data. 
-    If the device is Linux-based,it formats the data into rows with process information 
-    in each cell. If the device is not Linux-based, it formats the data differently. The table is 
-    formatted with specific styling for better readability.
-    Arguments:
-    - result (list): A list of process data to be displayed in the table. For Linux, this is a list 
-    of dictionaries with process details; for non-Linux, it is a list of strings representing process information.
-    - is_linux (bool): A flag indicating whether the device is Linux-based or not, which determines 
-    the format of the table.
-    Returns- str: A string containing the HTML table of the process data.
     """
     table_result = None
     td_string ="<td style='font-family: calibri, tahoma, verdana; color: black; height: 10px;'>"
@@ -51,17 +38,6 @@ def get_result_table(result,is_linux):
 
 def update_incident_status(status,incident,payload,process=None,process_result=None):
     """
-    Updates the status of an incident in an ITSM tool. The function prepares and formats the payload 
-    based on the incident details and updates the incident with the specified status. Additional 
-    information such as work notes and close notes are formatted using incident attributes.
-    Arguments:
-    - status (str): The new status to be assigned to the incident ("WIP" or "RESOLVED").
-    - incident (dict): A dictionary containing incident details such as sys_id, alert_type,resolver_id, etc.
-    - payload (dict): The payload to be updated for the incident.
-    - process (optional): The process details associated with the incident, if any.
-    - process_result (optional, str): The result of the process, which will be included in 
-    the work notes.
-    Returns- None: The function performs updates and prints the outcome or error messages.
     """
     resolver = None
     try:
@@ -96,19 +72,9 @@ def update_incident_status(status,incident,payload,process=None,process_result=N
 
 def update_status(status,incident,process=None,process_result=None):
     """
-    Updates the status of an incident based on a workflow configuration. The function retrieves 
-    the appropriate configuration for the status, formats the incident payload, and updates the 
-    incident status. If a result time is present, it updates the metrics accordingly.
-    Arguments:
-    - status (str): The status to update the incident with.
-    - incident (dict): A dictionary containing incident details such as result_time and attributes 
-    required for formatting the payload.
-    - process (optional): The process details associated with the incident, if any.
-    - process_result (optional, str): The result of the process, if available.
-    Returns:None: The function updates the incident and prints logs or error messages.
     """
     try:
-        cpu_config = MONGO_CONFIG["value"]
+        cpu_config = MONGO_CONFIG['CPUMemoryResourceRemediation']
         if status in cpu_config:
             incident_payload = cpu_config[status]['INCIDENT_PAYLOAD']
             if process_result is not None:
@@ -120,52 +86,11 @@ def update_status(status,incident,process=None,process_result=None):
     except Exception as exception:
         print(exception)
 
-def is_device_reachable(device_config):
-    """
-    Checks the reachability status of a device based on its configuration. It first checks if the 
-    device is reachable via ping, then verifies its accessibility over SSH (for Linux devices) or 
-    WinRM (for non-Linux devices). The function returns the status of the device based on the 
-    reachability checks.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details such as device_name,and whether the device is Linux or not.
-    Returns:str: A string indicating the reachability status ("Success", "Ping Failure", "SSH Failure","Winrm Failure").
-    """
-    status = None
-    try: 
-        if device_config is not None: 
-            retry_count = 3
-            if retry_count is None:
-                retry_count = 3
-            if is_ping_success(device_config['device_name'],retry_count):
-                if device_config['is_linux']:
-                    if get_ssh_reachable_status(device_config['device_name']):
-                        status = "Success"
-                        print("Success")
-                    else:
-                        status = "SSH Failure"
-                        print("SSH Failure")
-                else:
-                    if get_winrm_reachable_status(device_config['device_name']) == 'Success':
-                        status = "Success"
-                        print(status)
-                    else:
-                        status = "Winrm Failure"
-                        print(status)
-            else:
-                status="Ping Failure"
-                print("Ping Failure")
-        else:
-            print("Device Config is empty.")
-        if status == "Success":
-            return "Success"
-        else:
-            return device_unreachable_status(device_config,status)
-    except Exception as exception:
-        print(exception)
+
    
 def resolve_ticket(device_config,total_usage):
     """
-    Updates the incident status to "RESOLVED" with the provided device configuration and total cpu resource usage 
+    for-CPUMemoryResourceRemediation it updates the incident status to "RESOLVED" with the provided device configuration and total cpu resource usage 
     The device configuration is updated with the total usage before calling the update_status function to mark the incident as resolved.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details.
@@ -183,31 +108,6 @@ def resolve_ticket(device_config,total_usage):
             update_status('RESOLVED',incident=device_config)
         else:
             print("Device Config or actual value is empty.")
-    except Exception as exception:
-        print(exception)
-
-
-def device_unreachable_status(device_config,failureStatus):
-    """
-    Handles the escalation process when a device is unreachable. It checks the CPU/Memory remediation 
-    configuration to determine if the failure status should lead to an "ESCALATE_DEVICE_UNREACHABLE" 
-    status. If the failure status and device configuration are provided, it updates the incident with 
-    the failure type and triggers the status update.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details.
-    - failureStatus (str): The failure status indicating the reason for the device's unreachability.
-    Returns- None
-    """
-    try:
-        cpu_memory_config = MONGO_CONFIG["value"]
-        if cpu_memory_config is not None and "ESCALATE_DEVICE_UNREACHABLE" in cpu_memory_config:
-            print(failureStatus)
-            if device_config is not None and failureStatus is not None:
-                device_config['failureType'] = failureStatus
-                device_config['result_time'] = 1
-                update_status('ESCALATE_DEVICE_UNREACHABLE',incident=device_config)
-        else:
-            print("Device Config or ping output is empty.")
     except Exception as exception:
         print(exception)
 
@@ -257,9 +157,9 @@ def get_actual_threshold(device_config):
         print(exception)
 
 
-def escalate_ticket(device_config,total_usage,retry_count):
+def escalate_ticket_CPUMemoryResourceRemediation(device_config,total_usage,retry_count):
     """
-    Escalates the ticket if the resource usage (CPU or Memory) exceeds a specified threshold. The 
+    for-CPUMemoryResourceRemediation it escalates the ticket if the resource usage (CPU or Memory) exceeds a specified threshold. The 
     function retrieves the top resource-consuming processes for the device (based on whether it's 
     Linux or not) and triggers an escalation if the process information is available. The status is 
     updated with the top processes and their results.
