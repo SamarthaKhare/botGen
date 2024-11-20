@@ -126,8 +126,8 @@ def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
     result = None
     try:
         if host_name is not None:
-            command = """$Result = gwmi -Class win32_operatingsystem | Select-Object @{Name = "MemoryUsage"; 
-                Expression = {"{0:N2}" -f ((($_.TotalVisibleMemorySize - $_.FreePhysicalMemory) * 100) / $_.TotalVisibleMemorySize)}}
+            command = """$Result = gwmi -Class win32_operatingsystem | Select-Object @{Name = 'MemoryUsage'; 
+                Expression = {'{0:N2}' -f ((($_.TotalVisibleMemorySize - $_.FreePhysicalMemory) * 100) / $_.TotalVisibleMemorySize)}}
                 $Result = $Result | Format-Table -HideTableHeaders
                 echo $Result"""
             result = get_winrm_result(host_name, command,is_ntlm)
