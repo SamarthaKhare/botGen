@@ -1,10 +1,6 @@
 
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
 from servicenow import update_incident
-import sys
-import os
-# Add the parent directories to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from mongo_config import MONGO_CONFIG  # Import the MONGO_CONFIG
 workflow_name = 'CPUMemoryResourceRemediation'
 
@@ -101,8 +97,6 @@ def resolve_ticket_CPUResourceRemediation(device_config,total_usage):
         if device_config['is_comment_code']=='True' or device_config['is_vault_agent']=='True':
             update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
             return
-        print(device_config)
-        print(total_usage)
         if device_config is not None and total_usage is not None:
             device_config['total_usage'] = total_usage
             update_status('RESOLVED',incident=device_config)
