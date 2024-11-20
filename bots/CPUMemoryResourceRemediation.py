@@ -214,11 +214,10 @@ def device_unreachable_status(device_config,failureStatus):
 
 def get_actual_threshold(device_config):
     """
-    Determines and retrieves the actual threshold value for a given device based on its configuration.
+    Determines and retrieves the total usage of cpu/memory  for a given device based on its configuration.
     The function takes in the `device_config` dictionary containing device settings such as alert type, 
-    OS type, and device name. It uses this information to call specific functions to get the CPU or memory usage. 
-    If the threshold is successfully retrieved, it is processed and returned as a cleaned string. 
-    In case of failure, the function logs an escalation status update and handles the error gracefully.
+    OS type, and device name.If the threshold is successfully retrieved, it is processed and returned 
+    as a cleaned string else this function update incident with an escalation status.
     Args:device_config (dict): A dictionary containing the following keys:
             - "alert_type" (str): The type of alert, either 'CPU' or 'MEMORY'.
             - "is_linux" (bool): Specifies if the device is a Linux machine.
@@ -311,5 +310,3 @@ def escalate_ticket(device_config,total_usage,retry_count):
             print('Device config is none.')
     except Exception as exception:
         print(exception)
-
-    
