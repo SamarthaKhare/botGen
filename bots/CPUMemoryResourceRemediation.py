@@ -173,6 +173,9 @@ def resolve_ticket(device_config,total_usage):
     Returns:- None
     """
     try:
+        if device_config['is_comment_code']=='True' or device_config['is_vault_agent']=='True':
+            update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
+            return
         print(device_config)
         print(total_usage)
         if device_config is not None and total_usage is not None:
@@ -209,36 +212,27 @@ def device_unreachable_status(device_config,failureStatus):
         print(exception)
 
 
-def get_resource_usage(device_config):
+def get_actual_threshold(device_config):
     """
-    Evaluates the resource usage of a device and performs actions based on predefined thresholds 
-    for CPU or memory. Handles both Linux and non-Linux systems and supports escalation if needed.
-    Steps:
-    1. Retrieves the retry count from the workflow configuration and updates the incident status to "WIP".
-    2. If conditions like 'is_comment_code' or 'is_vault_agent' are true, escalates to cluster servers.
-    3. Extracts device details, including `device_name`, `threshold_value`, and `alert_type`.
-    4. Fetches resource usage based on the device type and alert type (CPU or MEMORY).
-    5. If usage data is available, compares it to the threshold:
-       - Resolves the ticket if usage is within the threshold.
-       - Escalates the ticket if usage exceeds the threshold.
-    6. Escalates for SSH failure if usage data is not retrievable.
-    7. Catches and logs any exceptions encountered.
-    Args:device_config (dict): Device configuration, including device_name,threshold_value,alert_type etc
-    Return:None
+    Determines and retrieves the actual threshold value for a given device based on its configuration.
+    The function takes in the `device_config` dictionary containing device settings such as alert type, 
+    OS type, and device name. It uses this information to call specific functions to get the CPU or memory usage. 
+    If the threshold is successfully retrieved, it is processed and returned as a cleaned string. 
+    In case of failure, the function logs an escalation status update and handles the error gracefully.
+    Args:device_config (dict): A dictionary containing the following keys:
+            - "alert_type" (str): The type of alert, either 'CPU' or 'MEMORY'.
+            - "is_linux" (bool): Specifies if the device is a Linux machine.
+            - "device_name" (str): The name or identifier of the device.
+    Returns:str or None: The actual threshold value as a string if successfully retrieved and processed, 
+        or None if an error occurs or the threshold is unavailable.
     """
-    actual_threshold = None
     try:
-        retry_count = 3
-        if device_config is not None and retry_count is not None :
-            update_status('WIP',incident=device_config)
-            if device_config['is_comment_code']=='True' or device_config['is_vault_agent']=='True':
-                update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
-                return
-            device_name = device_config["device_name"]
-            threshold_value = device_config["threshold_value"]
+        actual_threshold = None
+        if device_config:
             alert_type = device_config["alert_type"]
             is_linux = device_config['is_linux']
-            print(f"The threshold value is:{threshold_value}")
+            device_name = device_config["device_name"]
+            retry_count=3
             if alert_type == 'CPU':
                 if is_linux:
                     actual_threshold = get_top_cpu_consuming(device_name,retry_count)
@@ -250,25 +244,19 @@ def get_resource_usage(device_config):
                 else:
                     actual_threshold = get_total_memory_usage(device_name,retry_count)
             if actual_threshold is not None:
-                print(actual_threshold)
                 actual_threshold = actual_threshold.encode().decode().strip()
-                print('actual thresold is')
-                print(actual_threshold)
+                print(f'actual thresold is {actual_threshold}')
             else:
                 print("Threshold empty")
                 device_config['failureType'] = "SSH Failure"
                 device_config['result_time'] = 3
                 update_status('ESCALATE_DEVICE_UNREACHABLE',incident=device_config)
-                return
-                
-            if float(actual_threshold) <= float(threshold_value):
-                return resolve_ticket(device_config,actual_threshold)
-            else:
-                return escalate_ticket(device_config,actual_threshold,retry_count)
         else:
             print("Device Config is None")
+        return actual_threshold
     except Exception as exception:
         print(exception)
+
 
 def escalate_ticket(device_config,total_usage,retry_count):
     """
