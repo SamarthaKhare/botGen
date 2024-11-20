@@ -88,7 +88,7 @@ def update_status(status,incident,process=None,process_result=None):
 
 
    
-def resolve_ticket(device_config,total_usage):
+def resolve_ticket_CPUResourceRemediation(device_config,total_usage):
     """
     for-CPUMemoryResourceRemediation it updates the incident status to "RESOLVED" with the provided device configuration and total cpu resource usage 
     The device configuration is updated with the total usage before calling the update_status function to mark the incident as resolved.
@@ -157,7 +157,7 @@ def get_actual_threshold(device_config):
         print(exception)
 
 
-def escalate_ticket_CPUMemoryResourceRemediation(device_config,total_usage,retry_count):
+def escalate_ticket_CPUResourceRemediation(device_config,total_usage,retry_count):
     """
     for-CPUMemoryResourceRemediation it escalates the ticket if the resource usage (CPU or Memory) exceeds a specified threshold. The 
     function retrieves the top resource-consuming processes for the device (based on whether it's 
