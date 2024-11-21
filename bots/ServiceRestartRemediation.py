@@ -6,10 +6,10 @@ workflow_name = 'ServiceRestartRemediation'
 def resolve_ticket_ServiceRestartRemediation(device_config,service_state):
     """
     Resolves the incident ticket by updating its state and incident payload,it checks the 
-    provided service state and updates the ticket with appropriate work and close notes.
+    provided service state and updates the ticket accordingly with appropriate work and close notes.
     Arguments:
-    - device_config (dict): A dictionary containing the device details like 'sysId', 'deviceName', and 'serviceName'.
-    - service_state (str, optional): The state of the service is either Restart or Running. It is used to customize the incident payload and close notes. Defaults to None.
+    - device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
+    - service_state (str, optional): Its the state of the service, when the service is successfully updated service_state=Restart else service_state=Running.It is used to customize the incident payload and close notes.
     Returns-None
     """
     try:
@@ -18,12 +18,22 @@ def resolve_ticket_ServiceRestartRemediation(device_config,service_state):
             device_name = device_config['device_name']
             service_name = device_config['service_name']
             service_config = MONGO_CONFIG[workflow_name]
-            incident_payload = service_config['RESOLVED']['INCIDENT_PAYLOAD']
-            incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name)
-            incident_payload['close_notes'] = incident_payload['close_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
-            # check the service state and update acc
-            response = update_incident(sys_id,incident_payload)
-            print('response is',response)
+            if service_state=="Restart":
+                incident_payload = service_config['RESOLVED']['INCIDENT_PAYLOAD']
+                incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name)
+                incident_payload['close_notes'] = incident_payload['close_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
+                # check the service state and update acc
+                response = update_incident(sys_id,incident_payload)
+                print('response is',response)
+            elif service_state=='Running':
+                incident_payload = service_config['RUNNING']['INCIDENT_PAYLOAD']
+                incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name)
+                incident_payload['close_notes'] = incident_payload['close_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
+                # check the service state and update acc
+                response = update_incident(sys_id,incident_payload)
+                print('response is',response)
+            else:
+                print('Invalid Service State')
         else:
             print("device_config or service_state is none")
     except Exception as exception:
@@ -37,7 +47,7 @@ def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
     ('Restart' or 'Failed'), it updates the incident with relevant work notes to escalate the issue for further attention.
     Arguments:
     - device_config (dict): A dictionary containing the device details like 'sysId', 'deviceName', and 'serviceName'.
-    - service_state (str): The state of the service is 'Restart' if failed while restarting or 'Failed' if failed while updating.It determines the type of escalation.
+    - service_state (str): The state of the service is 'Restart' when the service is valid but failure occur in updating the service. Other wise invalid service
     Returns:None
     """
     try:
