@@ -1,18 +1,20 @@
 
 from remote_connection_helper import get_winrm_script_result
+from servicenow import update_incident
+from mongo_config import MONGO_CONFIG
 
-
-def get_state(host_name, service_name):
+workflow_name='ServiceRestartRemediation'
+def get_state(device_config):
     """
     Checks the current status of a specified Windows service on a remote host using WinRM. It runs a PowerShell 
     command to determine if the service is valid and, if so, retrieves its status.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Windows host.
-    - service_name (str): The name of the service whose status is to be checked.
+    Arguments- device_config (dict): A dictionary containing the device details like 'sysId', 'deviceName', and 'serviceName'.
     Returns:- str or None: The status of the service (e.g., "Running", "Stopped), or 'Invalid' if the service is not found. Returns None in case of an exception.
     """
     result = None
     try:
+        host_name=device_config['device_name']
+        service_name=device_config['service_name']
         if host_name is not None and service_name is not None:
             command = "if((Get-Service -Name '"+service_name+"' -ErrorAction SilentlyContinue) -eq $null){echo 'Invalid'} else {(Get-Service -Name '"+service_name+"').Status}"
             result = get_winrm_script_result(host_name, command,True).strip()
@@ -21,18 +23,23 @@ def get_state(host_name, service_name):
     return result
 
 
-def update_state(host_name, service_name):
+def update_state(device_config):
     """
     Attempts to start a specified Windows service on a remote host using WinRM. It uses a PowerShell command 
     to try starting the service multiple times and checks if the service reaches the "Running" status. Returns 
     a success or failure message based on the outcome.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Windows host.
-    - service_name (str): The name of the service to be started.
+    Arguments- device_config (dict): A dictionary containing the device details like 'sysId', 'deviceName', and 'serviceName'.
     Returns:- str or None: "SUCCESS" if the service starts successfully, "FAILURE" if it fails to start, or None in case of an exception.
     """
     result = None
     try:
+        service_config = MONGO_CONFIG[workflow_name]
+        if service_config is not None and 'WIP' in service_config:
+            incident_payload = service_config['WIP']['INCIDENT_PAYLOAD']
+            response = update_incident(device_config['sysId'],incident_payload)
+            print(response)
+        host_name=device_config['device_name']
+        service_name=device_config['service_name']
         if host_name is not None and service_name is not None:
             command = """
             try
