@@ -139,8 +139,8 @@ def device_unreachable_status(device_config,failureStatus,workflow_name):
     try:
         config = MONGO_CONFIG[workflow_name]        
         if all([device_config,failureStatus,config]) and 'ESCALATE_DEVICE_UNREACHABLE' in config:
-            sys_id = device_config['sysId']
-            device_name = device_config['deviceName']
+            sys_id = device_config['sys_id']
+            device_name = device_config['device_name']
             incident_payload = config['ESCALATE_DEVICE_UNREACHABLE']['INCIDENT_PAYLOAD']
             incident_payload['work_notes'] = incident_payload['work_notes'].format(DEVICE_NAME=
                                                     device_name,FAILURE_TYPE=failureStatus)
