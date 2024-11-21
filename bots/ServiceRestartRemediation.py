@@ -46,7 +46,7 @@ def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
     Escalates the incident ticket if the device is not in the expected state or in case of any failure.If the service state indicates a problem
     ('Restart' or 'Failed'), it updates the incident with relevant work notes to escalate the issue for further attention.
     Arguments:
-    - device_config (dict): A dictionary containing the device details like 'sysId', 'deviceName', and 'serviceName'.
+    - device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
     - service_state (str): The state of the service is 'Restart' when the service is valid but failure occur in updating the service. Other wise invalid service
     Returns:None
     """
