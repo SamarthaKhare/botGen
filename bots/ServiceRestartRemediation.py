@@ -18,16 +18,19 @@ def resolve_ticket_ServiceRestartRemediation(device_config,service_state):
             device_name = device_config['device_name']
             service_name = device_config['service_name']
             service_config = MONGO_CONFIG[workflow_name]
+
             if service_state=="Restart":
                 incident_payload = service_config['RESOLVED']['INCIDENT_PAYLOAD']
-                incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name)
+                incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
                 incident_payload['close_notes'] = incident_payload['close_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
                 # check the service state and update acc
+                print(incident_payload)
                 response = update_incident(sys_id,incident_payload)
                 print('response is',response)
             elif service_state=='Running':
+                #print("I am here")
                 incident_payload = service_config['RUNNING']['INCIDENT_PAYLOAD']
-                incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name)
+                incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
                 incident_payload['close_notes'] = incident_payload['close_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
                 # check the service state and update acc
                 response = update_incident(sys_id,incident_payload)
@@ -59,6 +62,7 @@ def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
                 service_config = MONGO_CONFIG[workflow_name]
                 incident_payload = service_config['ESCALATE']['INCIDENT_PAYLOAD']
                 incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
+                incident_payload['close_notes'] = incident_payload['close_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
                 update_incident(sys_id,incident_payload)
             else:
                 print("Invalid service")
