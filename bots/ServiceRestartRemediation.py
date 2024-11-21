@@ -14,11 +14,11 @@ def resolve_ticket_ServiceRestartRemediation(device_config,service_state):
     """
     try:
         if device_config is not None and service_state is not None:
-            sys_id = device_config['sysId']
-            device_name = device_config['deviceName']
-            service_name = device_config['serviceName']
+            sys_id = device_config['sys_id']
+            device_name = device_config['device_name']
+            service_name = device_config['service_name']
             service_config = MONGO_CONFIG[workflow_name]
-            incident_payload = service_config['RESOLVED_STARTED']['INCIDENT_PAYLOAD']
+            incident_payload = service_config['RESOLVED']['INCIDENT_PAYLOAD']
             incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name)
             incident_payload['close_notes'] = incident_payload['close_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
             # check the service state and update acc
@@ -42,12 +42,12 @@ def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
     """
     try:
         if device_config is not None and service_state is not None:
-            sys_id = device_config['sysId']
-            device_name = device_config['deviceName']
-            service_name = device_config['serviceName']
+            sys_id = device_config['sys_id']
+            device_name = device_config['device_name']
+            service_name = device_config['service_name']
             if service_state == 'Restart':
                 service_config = MONGO_CONFIG[workflow_name]
-                incident_payload = service_config['RESOLVED_STARTED']['INCIDENT_PAYLOAD']
+                incident_payload = service_config['ESCALATE']['INCIDENT_PAYLOAD']
                 incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
                 update_incident(sys_id,incident_payload)
             else:
