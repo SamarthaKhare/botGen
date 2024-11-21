@@ -77,7 +77,7 @@ def get_winrm_session(host_name, is_ntlm=True):
     return session
 
 
-def get_winrm_result(host, command, is_ntlm=True):
+def get_winrm_script_result(host, command, is_ntlm=True):
     """
     Executes a PowerShell command on a remote Windows machine via WinRM and returns the output.
     This function sends a command to a remote Windows host over a WinRM session and captures its output. It uses
