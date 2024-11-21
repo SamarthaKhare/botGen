@@ -4,7 +4,7 @@ from servicenow import update_incident
 from mongo_config import MONGO_CONFIG
 
 workflow_name='ServiceRestartRemediation'
-def get_state(device_config):
+def get_state_ServiceRestartRemediation(device_config):
     """
     Checks the current status of a specified Windows service on a remote host using WinRM. It runs a PowerShell 
     command to determine if the service is valid and, if so, retrieves its status.
@@ -23,7 +23,7 @@ def get_state(device_config):
     return result
 
 
-def update_state(device_config):
+def update_state_ServiceRestartRemediation(device_config):
     """
     Attempts to start a specified Windows service on a remote host using WinRM. It uses a PowerShell command 
     to try starting the service multiple times and checks if the service reaches the "Running" status. Returns 
@@ -80,4 +80,3 @@ def update_state(device_config):
     except Exception as exception:
         print(exception)
     return result
-
