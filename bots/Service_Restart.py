@@ -2,7 +2,6 @@
 from remote_connection_helper import get_winrm_script_result
 from servicenow import update_incident
 from mongo_config import MONGO_CONFIG
-
 workflow_name='ServiceRestartRemediation'
 def get_state_ServiceRestartRemediation(device_config):
     """
@@ -13,6 +12,11 @@ def get_state_ServiceRestartRemediation(device_config):
     """
     result = None
     try:
+        service_config = MONGO_CONFIG[workflow_name]
+        if service_config is not None and 'WIP' in service_config:
+            incident_payload = service_config['WIP']['INCIDENT_PAYLOAD']
+            response = update_incident(device_config['sys_id'],incident_payload)
+            print(response)
         host_name=device_config['device_name']
         service_name=device_config['service_name']
         if host_name is not None and service_name is not None:
@@ -32,49 +36,39 @@ def update_state_ServiceRestartRemediation(device_config):
     """
     result = None
     try:
-        service_config = MONGO_CONFIG[workflow_name]
-        if service_config is not None and 'WIP' in service_config:
-            incident_payload = service_config['WIP']['INCIDENT_PAYLOAD']
-            response = update_incident(device_config['sys_id'],incident_payload)
-            print(response)
+        
         host_name=device_config['device_name']
         service_name=device_config['service_name']
         if host_name is not None and service_name is not None:
-            command = """
-            try
-                {{
-                    $MaxRepeat = 2
-                    Start-Service {service_name} -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-                    do
-                    {{
-                        $Count = (Get-Service {service_name} | ? {{$_.status -eq 'Running'}}).count
-                        $MaxRepeat = $MaxRepeat - 1
-                        Sleep -Milliseconds 5000
-                    }} until ($Count -eq 1 -or $MaxRepeat -eq 0)
+            success_message = "SUCCESS"
+            error_message = "FAILURE"
+
+            command = f"""
+            try {{
+                $MaxRepeat = 2
+                Start-Service {service_name} -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+                do {{
+                    $Count = (Get-Service {service_name} | Where-Object {{ $_.Status -eq 'Running' }}).Count
+                    $MaxRepeat -= 1
+                    Start-Sleep -Milliseconds 5000
+                }} until ($Count -eq 1 -or $MaxRepeat -eq 0)
+                
+                $CurrentStatus = (Get-Service {service_name}).Status
+                if ($CurrentStatus -eq 'Running' -or $CurrentStatus -eq 'StartPending') {{
+                    Write-Output "{success_message}"
+                }} else {{
+                    Start-Service {service_name} -WarningAction SilentlyContinue
                     $CurrentStatus = (Get-Service {service_name}).Status
-                    if($CurrentStatus -eq 'Running' -or $CurrentStatus -eq 'StartPending')
-                    {{
-                        echo {success_message}
-                    }}
-                    else
-                    {{
-                        Start-Service {service_name} -WarningAction SilentlyContinue
-                        $CurrentStatus = (Get-Service {service_name}).Status
-                        if($CurrentStatus -eq 'Running' -or $CurrentStatus -eq 'StartPending')
-                        {{
-                            echo {success_message}
-                        }}
-                        else
-                        {{
-                            echo {error_message}
-                        }}
+                    if ($CurrentStatus -eq 'Running' -or $CurrentStatus -eq 'StartPending') {{
+                        Write-Output "{success_message}"
+                    }} else {{
+                        Write-Output "{error_message}"
                     }}
                 }}
-                catch
-                {{
-                    echo {error_message}
-                }}
-                """.format(service_name = service_name, success_message = 'SUCCESS', error_message = 'FAILURE')
+            }} catch {{
+                Write-Output "{error_message}"
+            }}
+            """
             result = get_winrm_script_result(host_name, command,True).strip()
     except Exception as exception:
         print(exception)
