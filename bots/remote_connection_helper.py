@@ -96,9 +96,7 @@ def get_winrm_script_result(host, command, is_ntlm=True):
             command = parse_command(command)
             if command is not None:
                 output = session.run_cmd(command)
-                #print("err", output.std_err.decode())
-                #print("out", output)
-                #print('od', output.std_out.decode())
+                print("err", output.std_err.decode())
                 if output.status_code == 0:
                     result = output.std_out.decode().strip()
                     if result == "":
