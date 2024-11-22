@@ -4,7 +4,7 @@ import requests
 import os
 from requests.auth import HTTPBasicAuth
 import json
-from remote_connection_helper import is_ping_success,get_winrm_reachable_status,get_ssh_reachable_status
+from remote_connection_helper import is_ping_success,get_winrm_connection_status,get_ssh_reachable_status
 from servicenow import update_incident
 from dotenv import load_dotenv
 
@@ -43,7 +43,10 @@ def get_workflow_payload(incident):
 	This function extracts the relevant input parameters/device configuration such as device name, service name, alert type, 
  	and threshold values by parsing the incident description and applying search patterns.
 	Arguments:- incident (dict): A dictionary containing incident details, which may include "subcategory", "device_name",sys_id", "number", "alert_type", etc.
-	Returns: dict or None: A dictionary containing the constructed payload with fields such as "sys_id", "number","device_name", "threshold_value", "alert_type",is_linux","service_name" etc.
+	Returns:
+	dict or None: A dictionary containing the constructed payload with fields such as "sys_id", "number", 
+	"device_name", "threshold_value", "alert_type", and "is_linux","service_name". If essential data is missing, 
+	it returns None.
     """
     #search pattern
     pattern = r"(\w+(?: \w+)*):\s*([^\n:]+)"
@@ -57,13 +60,8 @@ def get_workflow_payload(incident):
     device_config['sys_id']=sys_id
     device_config['number']=number
     device_config['description']=description
-    is_linux=False
-    if "lnx" in device_config['device_name'].lower(): 
-         is_linux=True
-    # flag if device is linux 
-    device_config['is_linux']=is_linux
     for key, value in device_config.items():
-        if isinstance(value, str) and value.lower() in ['true', 'false']:
+        if isinstance(value, str) and value.lower() in ['true','false']:
             device_config[key] = value.lower() == 'true'
     print(device_config)
     return device_config
@@ -98,19 +96,23 @@ def is_device_reachable(device_config,workflow_name):
     status = None
     try: 
         if device_config is not None: 
+            config = MONGO_CONFIG[workflow_name]
+            if config is not None and 'WIP' in config:
+                incident_payload = config['WIP']['INCIDENT_PAYLOAD']
+                update_incident(device_config['sys_id'],incident_payload)
             retry_count = 3
             if retry_count is None:
                 retry_count = 3
             if is_ping_success(device_config['device_name'],retry_count):
                 if device_config['is_linux']:
-                    if get_ssh_reachable_status(device_config['device_name']):
+                    if get_ssh_reachable_status(device_config['device_name'])=="Success":
                         status = "Success"
-                        print("Success")
+                        print("SSH Success")
                     else:
                         status = "SSH Failure"
                         print("SSH Failure")
                 else:
-                    if get_winrm_reachable_status(device_config['device_name']) == 'Success':
+                    if get_winrm_connection_status(device_config['device_name']) == 'Success':
                         status = "Success"
                         print(status)
                     else:
