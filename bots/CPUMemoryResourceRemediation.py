@@ -1,310 +1,205 @@
-import time
-from remote_connection_helper import get_winrm_script_result,get_ssh_script_result,get_ssh_client
-def get_top_cpu_process(host_name,retry_count,count=5,is_ntlm=True):
-        result = None
-        try:
-                if host_name is not None:
-                        command = """
-Get-Counter '\Process(*)\ID Process','\Process(*)\% Processor Time' -ErrorAction SilentlyContinue |
-  ForEach-Object {
-    $_.CounterSamples |
-      Where-Object InstanceName -NotMatch '^(?:idle|_total|system)$' |
-      Group-Object {Split-Path $_.Path} |
-      ForEach-Object {
-        [pscustomobject]@{
-          ProcessId = $_.Group |? Path -like '*\ID Process' |% RawValue
-          ProcessName = $_.Group[0].InstanceName
-          CPUCooked = $_.Group |? Path -like '*\% Processor Time' |% CookedValue
-        }
-      } | Sort-Object CPUCooked -Descending |
-      Select-Object -First 5 |
-      ForEach-Object {
-        "{0}|||{1}|||{2} ~~~" -f $_.ProcessId, $_.ProcessName, '{0:P}' -f ($_.CPUCooked / 100 / $env:NUMBER_OF_PROCESSORS)
-      }
-  }
-"""
-                        result = get_winrm_script_result(host_name, command,is_ntlm)
-                        if result is not None:
-                                result = result.strip()
-        except Exception as exception:
-                print(exception)
-        return result
 
+from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
+from servicenow import update_incident
+from mongo_config import MONGO_CONFIG  # Import the MONGO_CONFIG
+workflow_name = 'CPUMemoryResourceRemediation'
 
-def get_total_cpu_usage(host_name,retry_count,is_ntlm=True):
-     
+def get_result_table(result,is_linux):
     """
-    Calculates the average total CPU usage on a remote Windows host using WinRM. The function runs a 
-    PowerShell command to get the average CPU load percentage.
-    Arguments:
-    - host_name (str): The name or IP address of the remote host.
-    - retry_count (int): The number of times to retry the operation.
-    - is_ntlm (bool, optional): Specifies whether to use NTLM authentication (default is True).
-    Returns-str: The average CPU load percentage as a string. Returns None if an error occurs.
     """
-    result = None
+    table_result = None
+    td_string ="<td style='font-family: calibri, tahoma, verdana; color: black; height: 10px;'>"
+    count = 0
     try:
-        if host_name is not None:
-            command = """
-            $CPUAverage = Get-WmiObject win32_processor | Measure-Object -Property LoadPercentage -Average
-            $AverageValue = $CPUAverage | Select-Object Average
-            $Result =  $AverageValue | Format-Table -HideTableHeaders
-            echo $Result
-            """
-            result = get_winrm_script_result(host_name, command,is_ntlm)
-            if result is not None:
-                result = result.strip()
-    except Exception as exception:
-        print(exception)
-    return result
-
-def get_top_memory_process(host_name,retry_count,count=5,is_ntlm=True):
-    """
-    Retrieves the top memory-consuming processes on a remote Windows host using WinRM. The function 
-    executes a PowerShell command to gather process IDs, names, and memory usage, sorted in descending 
-    order by memory usage, and returns the top 'count' results.
-    Arguments:
-    - host_name (str): The name or IP address of the remote host.
-    - retry_count (int): The number of times to retry the operation.
-    - count (int, optional): The number of top memory-consuming processes to retrieve (default is 5).
-    - is_ntlm (bool, optional): Specifies whether to use NTLM authentication (default is True).
-    Returns:
-    - str: A formatted string of top memory processes with process ID, name, and memory usage percentage.Returns None if an error occurs.
-    """    
-    result = None
-    try:
-        if host_name is not None:
-            command = """
-$TotalMemory = Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object -ExpandProperty TotalPhysicalMemory
-Get-Counter '\Process(*)\ID Process','\Process(*)\Working Set - Private' -ErrorAction SilentlyContinue |
-ForEach-Object {
-$_.CounterSamples |
-Where-Object InstanceName -NotMatch '^(?:idle|_total|system)$' |
-Group-Object {Split-Path $_.Path} |
-ForEach-Object {
-[pscustomobject]@{
-    ProcessId = $_.Group |? Path -like '*\ID Process' |% RawValue
-    ProcessName = $_.Group[0].InstanceName
-    MemoryUsage = $_.Group |? Path -like '*\Working Set - Private' |% CookedValue
-}
-} | Sort-Object MemoryUsage -Descending |
-Select-Object -First 5 |
-ForEach-Object {
-"{0}|||{1}|||{2:P}~~~" -f $_.ProcessId, $_.ProcessName, ($_.MemoryUsage / $TotalMemory)
-}
-}
-"""
-            result = get_winrm_script_result(host_name, command,is_ntlm)
-            if result is not None:
-                result = result.strip()
-    except Exception as exception:
-            print(exception)
-    return result
-
-def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
-    """
-    Calculates the total memory usage percentage on a remote Windows host using WinRM. The function runs 
-    a PowerShell command to fetch the total visible memory size and free physical memory to compute memory 
-    usage.
-    Arguments:
-    - host_name (str): The name or IP address of the remote host.
-    - retry_count (int): The number of times to retry the operation.
-    - is_ntlm (bool, optional): Specifies whether to use NTLM authentication (default is True).
-    Returns- str: The memory usage percentage as a formatted string. Returns None if an error occurs.
-    """
-
-    result = None
-    try:
-        if host_name is not None:
-            command = """$Result = gwmi -Class win32_operatingsystem | Select-Object @{Name = 'MemoryUsage'; 
-                Expression = {'{0:N2}' -f ((($_.TotalVisibleMemorySize - $_.FreePhysicalMemory) * 100) / $_.TotalVisibleMemorySize)}}
-                $Result = $Result | Format-Table -HideTableHeaders
-                echo $Result"""
-            result = get_winrm_script_result(host_name, command,is_ntlm)
-            if result is not None:
-                result = result.strip()
-    except Exception as exception:
-        print(exception)
-    return result
-
-def get_top_cpu_consuming_process(host_name, process_count, retry_count):
-    """
-    Fetches the top CPU-consuming processes on a remote Linux host. The function executes a command over 
-    SSH to retrieve process IDs, names, and normalized CPU usage, and returns a list of the specified 
-    number of top CPU-consuming processes.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - process_count (int): The number of top CPU-consuming processes to retrieve.
-    - retry_count (int): The number of times to retry the operation.
-    Returns:-list: A list of dictionaries containing process ID, command name, and CPU usage percentage. Returns an empty list if an error occurs.
-    """
-    command_result = None
-    cpu_process = []
-    try:
-        if host_name is not None:
-            process_count += 1
-            command = f"ps -eo pid,comm,%cpu --sort=-%cpu | head -{process_count} | awk -v cores=$(nproc) '{{print $1, $2, $3/cores}}'"
-            command_result = get_ssh_script_result(host_name, command)
-            if command_result is not None:
-                command_result.pop(0)
-                for return_result in command_result:
-                    process_list = return_result.split()
-                    cpu_process.append({
-                        "PID": process_list[0],
-                        "COMMAND": ' '.join(process_list[1:len(process_list)-1]),
-                        "CPU USAGE IN %": f"{process_list[len(process_list)-1]}%"
-                    })
-    except Exception as exception:
-        print(exception)
-    return cpu_process
-
-def get_top_memory_consuming_process(host_name,process_count,retry_count):
-    """
-    Retrieves the top memory-consuming processes on a remote Linux host. The function executes a command 
-    over SSH to gather process IDs, names, and memory usage percentages, and returns a list of the 
-    specified number of top memory-consuming processes.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - process_count (int): The number of top memory-consuming processes to retrieve.
-    - retry_count (int): The number of times to retry the operation.
-    Returns:-list: A list of dictionaries containing process ID, command name, and memory usage percentage.Returns an empty list if an error occurs.
-    """
-    command_result = None
-    process_count=process_count+1
-    memory_process=[]
-    try:
-        if host_name is not None:
-            command = "ps -eo pid,command,%mem --sort=-%mem | head -{num}".format(num=process_count)
-            command_result = get_ssh_script_result(host_name, command)
-            if command_result is not None:
-                command_result.pop(0)
-                for return_result in command_result:
-                    process_list = return_result.split()
-                    memory_process.append({"PID":process_list[0],"COMMAND":' '.join(process_list[1:len(process_list)-1]),"MEMORY USAGE IN %":process_list[len(process_list)-1]+"%"})
-    except Exception as exception:
-        print(exception)
-    return memory_process
-
-def kill_cpu_consuming_process(host_name,kill_count):
-    """
-    Terminates the top CPU-consuming processes on a remote Linux host. The function retrieves the process 
-    IDs of the specified number of top CPU-consuming processes and sends a kill signal to terminate them.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - kill_count (int): The number of top CPU-consuming processes to terminate.
-    Returns- list: A list of dictionaries containing process ID and the result of the kill command. Returns an empty list if an error occurs.
-    """
-    command_result = None
-    kill_count=kill_count+1
-    return_result=[]
-    try:
-        get_pid="ps -eo pid --sort=-%cpu | head -{num}".format(num=kill_count)
-        top_pid=get_ssh_script_result(host_name, get_pid)
-        if top_pid is not None:
-           top_pid.pop(0)
-           for id in top_pid:
-               command="kill -9 {pid}".format(pid=id)
-               command_result = get_ssh_script_result(host_name, command)
-               return_result.append({"PID":id,"RESULT":command_result})
-    except Exception as exception:
-        print(exception)
-    return return_result
-
-def kill_memory_consuming_process(host_name,kill_count):
-    """
-    Terminates the top memory-consuming processes on a remote Linux host. The function retrieves the 
-    process IDs of the specified number of top memory-consuming processes and sends a kill signal to 
-    terminate them.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - kill_count (int): The number of top memory-consuming processes to terminate.
-    Returns-list: A list of dictionaries containing process ID and the result of the kill command. Returns an 
-    empty list if an error occurs.
-    """
-    command_result = None
-    kill_count=kill_count+1
-    return_result=[]
-    try:
-        get_pid="ps -eo pid --sort=-%mem | head -{num}".format(num=kill_count)
-        top_pid=get_ssh_script_result(host_name, get_pid)
-        if top_pid is not None:
-            top_pid.pop(0)
-            for id in top_pid:
-                command="kill -9 {pid}".format(pid=id)
-                command_result = get_ssh_script_result(host_name, command)
-                return_result.append({"PID":id,"RESULT":command_result})
-    except Exception as exception:
-        print(exception)
-    return return_result
-
-def get_top_cpu_consuming(host_name,retry_count):
-
-    """
-    Calculates the average CPU consumption on a remote Linux host over three samples. The function executes 
-    a command over SSH to retrieve the CPU usage percentage and averages the results, retrying up to the 
-    specified number of times if the operation fails.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - retry_count (int): The number of times to retry the operation if it fails.
-    Returns:- str: The average CPU consumption as a string. Returns None if an error occurs.
-    """
-    average_cpu_consumption = None
-    try:
-        if host_name and retry_count is not None:
-            success = False
-            command = "top -b -n1 | grep 'Cpu(s)' | awk '{print $2 + $4}'"
-            num_retries = 0
-            while not success and num_retries < int(retry_count):
-                try:
-                    client = get_ssh_client(host_name)
-                    if client is not None:
-                        total_cpu_consumption = 0
-                        for i in range(3):
-                            stdin, stdout, stderr = client.exec_command(command)
-                            if stdout is not None:
-                                cpu_consumption = float(stdout.read().decode('utf-8').strip())
-                                if cpu_consumption is not None and type(cpu_consumption) == float:
-                                    print(f"cpu at {num_retries } is {cpu_consumption} ")
-                                    total_cpu_consumption += cpu_consumption
-                                    time.sleep(2)
-                                else:
-                                    print("cpu_consumption is none")
-                        average_cpu_consumption = str(total_cpu_consumption / 3)
-                        success = True
-                    else:
-                        print(f"client failed retrying for {num_retries} time")
-                        num_retries += 1
-                except Exception as exception:
-                    print(exception)
-                    print(f"retrying for {num_retries} time")
-                    num_retries += 1
+        if is_linux:
+            processes = [[item for item in row.values()] for row in result]
+            table_result = ""
+            for process in processes:
+                table_result += "<tr>" + td_string
+                count += 1
+                process.insert(0, str(count))
+                table_result += ("</td>" + td_string).join(process)
+                table_result += "</td></tr>"
         else:
-            print("2 none")
+            table_result = ""
+            for process in result:
+                table_result += "<tr>" + td_string
+                count += 1
+                process_format = str(count) + "|||"+process
+                table_result += ("</td>" + td_string).join(process_format.split('|||'))
+                table_result += "</td></tr>"
     except Exception as exception:
         print(exception)
-    return average_cpu_consumption
+    return table_result
 
-def get_top_memory_consuming(host_name,retry_count):
-
+def update_incident_status(status,incident,payload,process=None,process_result=None):
     """
-    Fetches the memory usage percentage on a remote Linux host. The function executes a command over SSH to 
-    retrieve the memory usage percentage and returns the result.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - retry_count (int): The number of times to retry the operation.
-    Returns:- str: The memory usage percentage as a string. Returns None if an error occurs or if the result is not found.
     """
-    result = None
+    resolver = None
     try:
-        if host_name and retry_count is not None:
-            command = "free | awk 'FNR == 2 {used = $3 / $2 * 100.0; print used}'"
-            memory_result = get_ssh_script_result(host_name,command)
-            if memory_result is not None and len(memory_result) > 0:
-                result = memory_result[0]
+        print("updating status")
+        print(f"Current payload is : {payload}")
+
+        if status not in ["WIP", "RESOLVED"]:
+            payload["assignment_group"] = incident.get('resolver_id', None)
+            resolver = incident.get('resolver', None)
+            print(payload["assignment_group"])
+
+        if "close_notes" in payload:
+            payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident['alert_type'])
+        if "work_notes" in payload:
+            if  process_result is not None:
+                process_result = process_result.replace("\r\n", "")
             else:
-                print("memory result is none")
-        else:
-            print("2 none")
+                process_result = ""
+            payload["work_notes"] = payload["work_notes"].format(
+                                DEVICE_NAME=incident.get("device_name", None),
+                                ALERT_TYPE=incident.get("alert_type", None),
+                                THRESHOLD_VALUE=incident.get("threshold_value", None),
+                                TOTAL_USAGE=incident.get('total_usage',None),
+                                FAILURE_TYPE= incident.get('failureType',None),
+                                RESOLVER = resolver,
+                                PROCESS_RESULT  = process_result
+                                )      
+        print(f"updating incident for {status}")
+        print(update_incident(incident['sys_id'],payload))
     except Exception as exception:
         print(exception)
-    return result
+
+def update_status(status,incident,process=None,process_result=None):
+    """
+    """
+    try:
+        cpu_config = MONGO_CONFIG['CPUMemoryResourceRemediation']
+        if status in cpu_config:
+            incident_payload = cpu_config[status]['INCIDENT_PAYLOAD']
+            if process_result is not None:
+                update_incident_status(status,incident,incident_payload,process, process_result)  
+            else:
+                update_incident_status(status,incident,incident_payload)
+        else:
+            print(f"{status} is empty")
+    except Exception as exception:
+        print(exception)
+
+
+   
+def resolve_ticket_CPUResourceRemediation(device_config,total_usage):
+    """
+    for-CPUMemoryResourceRemediation it updates the incident status to "RESOLVED" with the provided device configuration and total cpu resource usage 
+    The device configuration is updated with the total usage before calling the update_status function to mark the incident as resolved.
+    Arguments:
+    - device_config (dict): A dictionary containing device configuration details.
+    - total_usage (float): The total usage value to be added to the device configuration.
+    Returns:- None
+    """
+    try:
+        if device_config['is_comment_code']=='True' or device_config['is_vault_agent']=='True':
+            update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
+            return
+        if device_config is not None and total_usage is not None:
+            device_config['total_usage'] = total_usage
+            update_status('RESOLVED',incident=device_config)
+        else:
+            print("Device Config or actual value is empty.")
+    except Exception as exception:
+        print(exception)
+
+
+def get_actual_threshold(device_config):
+    """
+    Determines and retrieves the total usage of cpu/memory  for a given device based on its configuration.
+    The function takes in the `device_config` dictionary containing device settings such as alert type, 
+    OS type, and device name.If the threshold is successfully retrieved, it is processed and returned 
+    as a cleaned string else this function update incident with an escalation status.
+    Args:device_config (dict): A dictionary containing the following keys:
+            - "alert_type" (str): The type of alert, either 'CPU' or 'MEMORY'.
+            - "is_linux" (bool): Specifies if the device is a Linux machine.
+            - "device_name" (str): The name or identifier of the device.
+    Returns:str or None: The actual threshold value as a string if successfully retrieved and processed, 
+        or None if an error occurs or the threshold is unavailable.
+    """
+    try:
+        actual_threshold = None
+        if device_config:
+            alert_type = device_config["alert_type"]
+            is_linux = device_config['is_linux']
+            device_name = device_config["device_name"]
+            retry_count=3
+            if alert_type == 'CPU':
+                if is_linux:
+                    actual_threshold = get_top_cpu_consuming(device_name,retry_count)
+                else:
+                    actual_threshold = get_total_cpu_usage(device_name,retry_count)
+            elif alert_type == 'MEMORY':
+                if is_linux:
+                    actual_threshold = get_top_memory_consuming(device_name,retry_count)
+                else:
+                    actual_threshold = get_total_memory_usage(device_name,retry_count)
+            if actual_threshold is not None:
+                actual_threshold = actual_threshold.encode().decode().strip()
+                print(f'actual thresold is {actual_threshold}')
+            else:
+                print("Threshold empty")
+                device_config['failureType'] = "SSH Failure"
+                device_config['result_time'] = 3
+                update_status('ESCALATE_DEVICE_UNREACHABLE',incident=device_config)
+        else:
+            print("Device Config is None")
+        return actual_threshold
+    except Exception as exception:
+        print(exception)
+
+
+def escalate_ticket_CPUResourceRemediation(device_config,total_usage,retry_count):
+    """
+    for-CPUMemoryResourceRemediation it escalates the ticket if the resource usage (CPU or Memory) exceeds a specified threshold. The 
+    function retrieves the top resource-consuming processes for the device (based on whether it's 
+    Linux or not) and triggers an escalation if the process information is available. The status is 
+    updated with the top processes and their results.
+    Arguments:
+    - device_config (dict): A dictionary containing device configuration details, such as device name, 
+    alert type, and whether the device is Linux-based.
+    - total_usage (float): The total resource usage value.
+    - retry_count (int): The number of retries for fetching resource data.
+    Returns:None
+    """
+    try:
+        if all([device_config,total_usage,retry_count]):
+            device_config['total_usage'] = total_usage
+            if device_config["alert_type"] == 'CPU':
+                result = None
+                if device_config['is_linux']:
+                    print("linux case")
+                    top_process = get_top_cpu_consuming_process(device_config['device_name'],5,retry_count)
+                    print(top_process)
+                    result = get_result_table(top_process,True)
+                else:
+                    top_process = get_top_cpu_process(device_config["device_name"],5,retry_count)
+                    print(top_process)
+                    if top_process is not None:
+                        top_process = top_process.split('~~~')[:-1]
+                        result = get_result_table(top_process,False)
+                if result is not None:
+                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
+                else:
+                    print("CPU Top Process Result is empty")
+
+            elif device_config["alert_type"] == 'MEMORY':
+                if device_config['is_linux']:
+                    print('linux case')
+                    top_process = get_top_memory_consuming_process(device_config['device_name'],5,retry_count)
+                    result = get_result_table(top_process,True)
+                else:
+                    top_process = get_top_memory_process(device_config["device_name"],5,retry_count)
+                    if top_process is not None:
+                        top_process = top_process.split('~~~')[:-1]
+                        result = get_result_table(top_process,False)
+                if result is not None:
+                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
+                else:
+                    print("Memory Top Process Result is None.")
+        else:
+            print('Device config is none.')
+    except Exception as exception:
+        print(exception)
