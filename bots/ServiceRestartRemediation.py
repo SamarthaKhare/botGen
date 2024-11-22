@@ -9,7 +9,7 @@ def resolve_ticket_ServiceRestartRemediation(device_config,service_state):
     provided service state and updates the ticket accordingly with appropriate work and close notes.
     Arguments:
     - device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
-    - service_state (str, optional): Its the state of the service, when the service is successfully updated service_state=Restart else service_state=Running.It is used to customize the incident payload and close notes.
+    - service_state (str, optional):state of the service,if the service update was successfull service_state=Restart else service_state=Running.It is used to customize the incident payload and close notes.
     Returns-None
     """
     try:
