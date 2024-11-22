@@ -44,7 +44,7 @@ def update_incident(sys_id,data):
     payload={}
     for key in data:
         payload[key]=data[key]
-    if payload['state']=='6':
+    if 'state' in payload and payload['state']=='6':
         payload['close_code']='Solution Provided'
     try:
         url = f"/api/now/v2/table/incident/{sys_id}"
