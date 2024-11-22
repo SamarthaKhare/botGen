@@ -41,15 +41,12 @@ def get_api_response(attributes):
 # Function to update the status of an incident
 def update_incident(sys_id,data):
     response = None
+    payload={}
+    for key in data:
+        payload[key]=data[key]
+    if payload['state']=='6':
+        payload['close_code']='Solution Provided'
     try:
-        payload=\
-        {
-            "close_code": data['close_code'],
-            "incident_state": data['state'],
-            "caller_id": "admin",
-            "close_notes": data['close_notes'],
-            'work_notes':data['work_notes']
-		}
         url = f"/api/now/v2/table/incident/{sys_id}"
         attributes = {"type": "PATCH", "url": url, "payload": payload}
         result, response_code = get_api_response(attributes)
