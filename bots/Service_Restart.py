@@ -12,11 +12,6 @@ def get_state_ServiceRestartRemediation(device_config):
     """
     result = None
     try:
-        service_config = MONGO_CONFIG[workflow_name]
-        if service_config is not None and 'WIP' in service_config:
-            incident_payload = service_config['WIP']['INCIDENT_PAYLOAD']
-            response = update_incident(device_config['sys_id'],incident_payload)
-            print(response)
         host_name=device_config['device_name']
         service_name=device_config['service_name']
         if host_name is not None and service_name is not None:
