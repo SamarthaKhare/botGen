@@ -58,3 +58,4 @@ def update_incident(sys_id,data):
         error_message = f"Error updating status: {exception}"
         print(error_message)
     return response
+
