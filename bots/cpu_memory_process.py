@@ -1,47 +1,35 @@
 import time
 from remote_connection_helper import get_winrm_script_result,get_ssh_script_result,get_ssh_client
-
 def get_top_cpu_process(host_name,retry_count,count=5,is_ntlm=True):
-    """
-    Retrieves the top CPU-consuming processes on a remote Windows host using WinRM. The function executes 
-    a PowerShell command to gather process IDs, names, and CPU usage, sorted in descending order by CPU 
-    usage, and returns the top 'count' results.
-    Arguments:
-    - host_name (str): The name or IP address of the remote host.
-    - retry_count (int): The number of times to retry the operation.
-    - count (int, optional): The number of top CPU-consuming processes to retrieve (default is 5).
-    - is_ntlm (bool, optional): Specifies whether to use NTLM authentication (default is True).
-    Returns- str: A formatted string of top CPU processes with process ID, name, and CPU usage. Returns None if 
-    an error occurs.
-    """
-    result = None
-    try:
-        if host_name is not None:
-            command = """
+        result = None
+        try:
+                if host_name is not None:
+                        command = """
 Get-Counter '\Process(*)\ID Process','\Process(*)\% Processor Time' -ErrorAction SilentlyContinue |
-ForEach-Object {
-$_.CounterSamples |
-Where-Object InstanceName -NotMatch '^(?:idle|_total|system)$' |
-Group-Object {Split-Path $_.Path} |
-ForEach-Object {
-[pscustomobject]@{
-    ProcessId = $_.Group |? Path -like '*\ID Process' |% RawValue
-    ProcessName = $_.Group[0].InstanceName
-    CPUCooked = $_.Group |? Path -like '*\% Processor Time' |% CookedValue
-}
-} | Sort-Object CPUCooked -Descending |
-Select-Object -First 5 |
-ForEach-Object {
-"{0}|||{1}|||{2} ~~~" -f $_.ProcessId, $_.ProcessName, '{0:P}' -f ($_.CPUCooked / 100 / $env:NUMBER_OF_PROCESSORS)
-}
-}
+  ForEach-Object {
+    $_.CounterSamples |
+      Where-Object InstanceName -NotMatch '^(?:idle|_total|system)$' |
+      Group-Object {Split-Path $_.Path} |
+      ForEach-Object {
+        [pscustomobject]@{
+          ProcessId = $_.Group |? Path -like '*\ID Process' |% RawValue
+          ProcessName = $_.Group[0].InstanceName
+          CPUCooked = $_.Group |? Path -like '*\% Processor Time' |% CookedValue
+        }
+      } | Sort-Object CPUCooked -Descending |
+      Select-Object -First 5 |
+      ForEach-Object {
+        "{0}|||{1}|||{2} ~~~" -f $_.ProcessId, $_.ProcessName, '{0:P}' -f ($_.CPUCooked / 100 / $env:NUMBER_OF_PROCESSORS)
+      }
+  }
 """
-            result = get_winrm_script_result(host_name, command,is_ntlm)
-            if result is not None:
-                result = result.strip()
-    except Exception as exception:
-            print(exception)
-    return result
+                        result = get_winrm_script_result(host_name, command,is_ntlm)
+                        if result is not None:
+                                result = result.strip()
+        except Exception as exception:
+                print(exception)
+        return result
+
 
 def get_total_cpu_usage(host_name,retry_count,is_ntlm=True):
      
@@ -133,7 +121,6 @@ def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
                 $Result = $Result | Format-Table -HideTableHeaders
                 echo $Result"""
             result = get_winrm_script_result(host_name, command,is_ntlm)
-            print(f" result of get_total_memory_usage is:{result}")
             if result is not None:
                 result = result.strip()
     except Exception as exception:
