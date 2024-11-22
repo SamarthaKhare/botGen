@@ -1,28 +1,17 @@
+import winrm
+import subprocess
+from ast import literal_eval
+import logging
+import os
+import sys
+import paramiko
 import os
 from dotenv import load_dotenv
 dir=os.path.dirname(os.path.abspath(__file__))
 dotenv_path = f"{dir}/../../.env"
 load_dotenv(dotenv_path=dotenv_path)
-
-def parse_command(command):
-    """
-    Parses a given command string to make it compatible with PowerShell execution by handling common formatting issues.
-    This function adjusts the command string to be safely executed in a PowerShell session. It removes extra spaces, 
-    replaces line breaks and tabs with semicolons, and ensures proper handling of curly braces to avoid errors in 
-    PowerShell's syntax.
-    Args:
-        command (str): The command string to be parsed. This is typically a Windows command to be executed remotely.   
-    Returns:
-        str: The parsed command string, formatted for PowerShell execution, enclosed in a PowerShell command wrapper.
-             Returns None if the input command is None.
-    """
-    import re
-    if command is not None:
-        command = re.sub(' +', ' ', command)  # Remove extra spaces
-        command = command.replace('\r', ';').replace('\n', ';').replace('\t', '')  # Replace line breaks and tabs with semicolons
-        command = command.replace('{;', '{').replace(';}', '}')  # Fix potential issues with curly braces
-        return f'powershell -command "{command}"'
-    return None
+urllib3_logger = logging.getLogger('urllib3')
+urllib3_logger.setLevel(logging.CRITICAL)
 
 
 def is_ping_success(host, count):
@@ -51,7 +40,8 @@ def is_ping_success(host, count):
         return False
 
 
-def get_winrm_session(host_name, is_ntlm=True):
+
+def get_winrm_connection(host_name, is_ntlm=True):
     """
     Establishes a WinRM (Windows Remote Management) session to a remote Windows host.
     This function initiates a session with the remote Windows host using the WinRM protocol, with the option to use 
@@ -62,22 +52,25 @@ def get_winrm_session(host_name, is_ntlm=True):
     Returns:
         winrm.Session: A WinRM session object if successfully connected to the host, otherwise None.
     """
-    import winrm
-    import os
-    username = os.environ['USER_NAME_WINDOWS']
-    password = os.environ['PASSWORD_WINDOWS']
-    session = None
+    connection = None
     try:
-        if is_ntlm:
-            session = winrm.Session(host_name, auth=(username, password), transport='ntlm')
-        else:
-            session = winrm.Session(host_name, auth=(username, password))
+        username = os.environ['USER_NAME_WINDOWS']
+        password = os.environ['PASSWORD_WINDOWS']
+        if username is not None and password is not None:
+            account_name =username
+            account_key = password
+            if is_ntlm == True:
+                connection = winrm.Session(
+                    host_name, auth=(account_name, account_key), transport='ntlm')
+            else:
+                connection = winrm.Session(
+                    host_name, auth=(account_name, account_key))
     except Exception as exception:
-        print(f"Error establishing WinRM session: {exception}")
-    return session
+        print(exception)
+    return connection
 
 
-def get_winrm_script_result(host, command, is_ntlm=True):
+def get_winrm_script_result(host_name, command_text, is_ntlm=True):
     """
     Executes a PowerShell command on a remote Windows machine via WinRM and returns the output.
     This function sends a command to a remote Windows host over a WinRM session and captures its output. It uses
@@ -87,34 +80,26 @@ def get_winrm_script_result(host, command, is_ntlm=True):
         command (str): The command to execute on the remote machine.
         is_ntlm (bool): If True, NTLM authentication is used for the WinRM session.
     Returns:
-        str: The command's output if successful, "Success" if command is successful but has no output, else None if an error occurs.
+        str: The command's output if successfull, else None if an error occurs.
     """
     result = None
+    connection = None
+
     try:
-        session = get_winrm_session(host, is_ntlm)
-        if session is not None:
-            command = parse_command(command)
-            if command is not None:
-                output = session.run_cmd(command)
-                err=output.std_err.decode()
-                print(f"error found :{err}")
-                if output.status_code == 0:
-                    result = output.std_out.decode().strip()
-                    if result == "":
-                        result += "Success"
-                        print(f"{result} but no std output")
-                else:
-                    print("output is none")
-            else:
-                print("Command parsing failed.")
+        if is_ntlm == True:
+            connection = get_winrm_connection(host_name, True)
         else:
-            print("session is none")
+            connection = get_winrm_connection(host_name)
+        if connection is not None:
+            response = connection.run_ps(command_text)
+            if response is not None:
+                result = response.std_out.decode()
     except Exception as exception:
-        print(f"Error executing WinRM command: {exception}")
+        print(exception)
     return result
 
 
-def get_winrm_reachable_status(host_name, is_ntlm=True):
+def get_winrm_connection_status(host_name, is_ntlm=True):
     """
     Checks if a Windows host is reachable via WinRM by running the 'Test-WSMan' command.
     This function tests whether the remote machine can be accessed via WinRM by executing the 'Test-WSMan' PowerShell 
@@ -127,15 +112,18 @@ def get_winrm_reachable_status(host_name, is_ntlm=True):
     """
     status = "Failure"
     try:
-        command_text = "powershell -command 'Test-WSMan'"
-        session = get_winrm_session(host_name, is_ntlm=is_ntlm)
-        if session is not None:
-            result = session.run_cmd(command_text)
-            if result is not None and result.status_code == 0:
-                status = "Success"
+        command = 'Test-WSMan'
+        if is_ntlm == True:
+            result = get_winrm_script_result(host_name, command, True)
+        else:
+            result = get_winrm_script_result(host_name, command)
+        if result is not None:
+            status = "Success"
     except Exception as exception:
-        print(f"Error checking WinRM reachability: {exception}")
+        print(exception)
     return status
+
+
 
 
 def get_ssh_client(host_name, db_connection=None):
@@ -237,4 +225,3 @@ def get_ssh_reachable_status(host_name, db_connection=None):
         # Print any errors encountered during the process
         print(exception)
     return status
-
