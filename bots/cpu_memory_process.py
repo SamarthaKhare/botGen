@@ -1,5 +1,5 @@
 import time
-from remote_connection_helper import get_winrm_result,get_ssh_script_result,get_ssh_client
+from remote_connection_helper import get_winrm_script_result,get_ssh_script_result,get_ssh_client
 
 def get_top_cpu_process(host_name,retry_count,count=5,is_ntlm=True):
     """
@@ -36,7 +36,7 @@ ForEach-Object {
 }
 }
 """
-            result = get_winrm_result(host_name, command,is_ntlm)
+            result = get_winrm_script_result(host_name, command,is_ntlm)
             if result is not None:
                 result = result.strip()
     except Exception as exception:
@@ -57,11 +57,13 @@ def get_total_cpu_usage(host_name,retry_count,is_ntlm=True):
     result = None
     try:
         if host_name is not None:
-            command = """$CPUAverage = Get-WmiObject win32_processor | Measure-Object -Property LoadPercentage -Average
-                    $AverageValue = $CPUAverage | Select-Object Average
-                    $Result =  $AverageValue | Format-Table -HideTableHeaders
-                    echo $Result"""
-            result = get_winrm_result(host_name, command,is_ntlm)
+            command = """
+            $CPUAverage = Get-WmiObject win32_processor | Measure-Object -Property LoadPercentage -Average
+            $AverageValue = $CPUAverage | Select-Object Average
+            $Result =  $AverageValue | Format-Table -HideTableHeaders
+            echo $Result
+            """
+            result = get_winrm_script_result(host_name, command,is_ntlm)
             if result is not None:
                 result = result.strip()
     except Exception as exception:
@@ -104,7 +106,7 @@ ForEach-Object {
 }
 }
 """
-            result = get_winrm_result(host_name, command,is_ntlm)
+            result = get_winrm_script_result(host_name, command,is_ntlm)
             if result is not None:
                 result = result.strip()
     except Exception as exception:
@@ -130,7 +132,7 @@ def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
                 Expression = {'{0:N2}' -f ((($_.TotalVisibleMemorySize - $_.FreePhysicalMemory) * 100) / $_.TotalVisibleMemorySize)}}
                 $Result = $Result | Format-Table -HideTableHeaders
                 echo $Result"""
-            result = get_winrm_result(host_name, command,is_ntlm)
+            result = get_winrm_script_result(host_name, command,is_ntlm)
             print(f" result of get_total_memory_usage is:{result}")
             if result is not None:
                 result = result.strip()
