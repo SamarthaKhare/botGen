@@ -7,7 +7,7 @@ import json
 from remote_connection_helper import is_ping_success,get_winrm_connection_status,get_ssh_reachable_status
 from servicenow import update_incident
 from dotenv import load_dotenv
-
+from remediation_connection_helper import get_ping_output
 dir=os.path.dirname(os.path.abspath(__file__))
 dotenv_path = f"{dir}/../../.env"
 load_dotenv(dotenv_path=dotenv_path)
@@ -140,8 +140,15 @@ def device_unreachable_status(device_config,failureStatus,workflow_name):
             sys_id = device_config['sys_id']
             device_name = device_config['device_name']
             incident_payload = config['ESCALATE_DEVICE_UNREACHABLE']['INCIDENT_PAYLOAD']
-            incident_payload['work_notes'] = incident_payload['work_notes'].format(DEVICE_NAME=
-                                                    device_name,FAILURE_TYPE=failureStatus)
+            if workflow_name=="PingResponseRemediation":
+                ping_result=get_ping_output(device_name)
+                incident_payload["work_notes"] = incident_payload["work_notes"].format(
+                                        DEVICE_NAME=device_name,
+                                        SERVICE_NAME=device_config.get('service_name',None),
+                                        PING_RESULT=ping_result,
+                                        FAILURE_TYPE=failureStatus)
+            else:
+                incident_payload['work_notes'] = incident_payload['work_notes'].format(DEVICE_NAME=device_name,FAILURE_TYPE=failureStatus)
             response = update_incident(sys_id,incident_payload)
             print('response is',response)
     except Exception as exception:
