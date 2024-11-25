@@ -85,10 +85,6 @@ def search_incident(filter_query):
 
 def is_device_reachable(device_config,workflow_name):
     """
-    Checks the reachability status of a device based on its configuration. It first checks if the 
-    device is reachable via ping, then verifies its accessibility over SSH (for Linux devices) or 
-    WinRM (for non-Linux devices). The function returns the status of the device based on the 
-    reachability checks and if it is unreachable it 
     Arguments: - device_config (dict): A dictionary containing device configuration details such as device_name,and whether the device is Linux or not.
                - workflow name 
     Returns:str: A string indicating the reachability status ("Success", "Ping Failure", "SSH Failure","Winrm Failure").
