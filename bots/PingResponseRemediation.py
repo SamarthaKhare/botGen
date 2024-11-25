@@ -49,9 +49,9 @@ def update_status(status,incident,ping_result=None):
         print(exception)
 
 
-def resolve_ticket_PingResponseRemediation(device_config,ping_result,service_state):
+def resolve_ticket(device_config,ping_result,service_state):
     """
-    Resolves a ticket related to ping response remediation by updating the incident status 
+     For- PingResponseRemediation it resolves a ticket related to ping response remediation by updating the incident status 
     based on the device configuration, ping results, and the current service state.
     Args:
         device_config (dict): Configuration details of the device related to the incident.
@@ -74,9 +74,9 @@ def resolve_ticket_PingResponseRemediation(device_config,ping_result,service_sta
         print(exception)
 
 
-def escalate_ticket_PingResponseRemediation(device_config,service_state,ping_result=None):
+def escalate_ticket(device_config,service_state,ping_result=None):
     """
-    Escalates the ticket for ping response remediation based on the service state and ping results.
+    For- PingResponseRemediation it escalates the ticket for ping response remediation based on the service state and ping results.
     Args:
         device_config (dict): Configuration details of the device related to the incident.
         service_state (str):The state of the service is 'Restart' when the service is valid but failure occur in updating the service. Other wise invalid service
