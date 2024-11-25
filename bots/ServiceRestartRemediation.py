@@ -50,7 +50,7 @@ def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
     ('Restart' or 'Failed'), it updates the incident with relevant work notes to escalate the issue for further attention.
     Arguments:
     - device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
-    - service_state (str): state of the service,if service update was unsuccessfull service_state=Restart.Other wise invalid service. 
+    - service_state (str): state of the service either Restart or Invalid.
     Returns:None
     """
     try:
@@ -58,7 +58,7 @@ def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
             sys_id = device_config['sys_id']
             device_name = device_config['device_name']
             service_name = device_config['service_name']
-            if service_state == 'Restart':
+            if service_state != 'Invalid':
                 service_config = MONGO_CONFIG[workflow_name]
                 incident_payload = service_config['ESCALATE']['INCIDENT_PAYLOAD']
                 incident_payload['work_notes'] = incident_payload['work_notes'].format(SERVICE_NAME=service_name,DEVICE_NAME=device_name)
