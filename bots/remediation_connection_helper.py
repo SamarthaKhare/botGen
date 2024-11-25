@@ -3,8 +3,7 @@ import platform
 
 def get_ping_output(host):
     """
-    For - PingResponseRemediation it provides the ping output by executing a single ping command to check the reachability of a given host.
-    This function is cross-platform and adjusts the `ping` command based on the operating system.
+    For - PingResponseRemediation it provides the ping output.
     Arguments:host (str): The hostname or IP address of the target to ping.
     Returns:str: The output of the ping command if successful, or an error message if the host is unreachable or the ping command fails.
     """
