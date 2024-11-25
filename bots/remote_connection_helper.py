@@ -16,15 +16,6 @@ urllib3_logger.setLevel(logging.CRITICAL)
 
 def is_ping_success(host, count):
     """
-    Sends ping requests to a specified host to check its network connectivity.
-    The function sends a specified number of ping packets to the host and evaluates the response to determine if the 
-    host is reachable. It adjusts the ping command for Windows and Unix-like systems and captures the success or 
-    failure of the ping.
-    Args:
-        host (str): The host name or IP address to ping.
-        count (int): The number of ping packets to send.
-    Returns:
-        bool: True if the ping was successful (the host is reachable), False if the ping failed or an error occurred.
     """
     import subprocess
     import platform
@@ -43,14 +34,6 @@ def is_ping_success(host, count):
 
 def get_winrm_connection(host_name, is_ntlm=True):
     """
-    Establishes a WinRM (Windows Remote Management) session to a remote Windows host.
-    This function initiates a session with the remote Windows host using the WinRM protocol, with the option to use 
-    NTLM (Windows integrated) authentication or basic authentication.
-    Args:
-        host_name (str): The IP address or host name of the remote Windows machine.
-        is_ntlm (bool): If True, NTLM authentication is used. If False, basic authentication is used.   
-    Returns:
-        winrm.Session: A WinRM session object if successfully connected to the host, otherwise None.
     """
     connection = None
     try:
