@@ -79,7 +79,7 @@ def escalate_ticket(device_config,service_state,ping_result=None):
     For- PingResponseRemediation it escalates the ticket for ping response remediation based on the service state and ping results.
     Args:
         device_config (dict): Configuration details of the device related to the incident.
-        service_state (str):The state of the service is 'Restart' when the service is valid but failure occur in updating the service. Other wise invalid service
+        service_state (str): state of the service,if service update was unsuccessfull service_state=Restart.Other wise invalid service
         ping_result (str, optional): Result of the ping operation for the device. Default is None.
     Returns:None
     """
