@@ -95,47 +95,7 @@ def va_backup(host_name, file_path, is_ntlm=True):
         print(exception)
     return temp_dict
 
-def start_stop_service(host_name, service_name, action_type):
-    """
-    Starts or stops a Windows service on a remote machine via WinRM.
-    Args:
-        host_name (str): The hostname or IP address of the remote machine.
-        service_name (str): The name of the service to be started or stopped.
-        action_type (str): Specifies the action to perform ('start' or 'stop').
-    Returns:
-        dict: A dictionary with the following keys:
-            - "status" (bool): Indicates whether the service action was successful.
-            - "note" (str): Additional information, e.g., success or failure message.
-    Raises:
-        Exception: Catches and prints any exceptions that occur during the process.
-    """
-    from remote_connection_helper import get_winrm_result
-    from zif_workflow_helper import get_workflow_config_value
-    temp_dict = {}
-    result = None
-    try:
-        config_result = get_workflow_config_value("VA_WINDOWS_SERVICES_NAMES")
-        if config_result is not None and service_name.lower() in config_result:
-            name = config_result[service_name.lower()]
-            if action_type == 'start':
-                command = f"Restart-Service -Name '*{name}*' -Force -Confirm:$false"
-            elif action_type == 'stop':
-                command = f"Stop-Service -Name '*{name}*' -Force -Confirm:$false"
-            result = get_winrm_result(host_name, command, is_ntlm=True)
-            result = result.strip()
-            if result is not None :
-                temp_dict["status"] = True
-                temp_dict["note"] = f"{action_type} services Completed for {service_name}"
-            else:
-                temp_dict["status"] = False
-                temp_dict["note"] = f"{action_type} services Failed for {service_name}"
-        else:
-            print("config value is None")
-    except Exception as exception:
-        print(exception)
-        temp_dict["status"] = False
-        temp_dict["note"] = str(exception)
-    return temp_dict
+
 
 
 def extract_zip(host_name,source_path, destination_path, is_ntlm=True):
@@ -533,14 +493,14 @@ def check_patch_status(host_name, patch_name, is_ntlm=True):
     result = {'status': False, 'note': 'Patch is not present'}
     try:
         patch_name_filter = f"*{patch_name}*"
-        command = f'''$patchName = '{patch_name_filter}'
+        command = f"$patchName = '{patch_name_filter}'
         $exePackages = Get-Package 3>$null | Where-Object {{ $_.Name -like $patchName }}
         if ($exePackages.Count -gt 0) {{
             'Package is present'
         }} else {{
             'Package is not present'
         }}
-        '''
+        "
         print("command:",command)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -554,7 +514,6 @@ def check_patch_status(host_name, patch_name, is_ntlm=True):
         print(exception)
         result['note']= f"An error occurred: {str(exception)}"
     return result
-
 
 def restart_service(host_name, service_name, is_ntlm=True):
     """
