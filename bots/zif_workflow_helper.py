@@ -112,15 +112,6 @@ def get_workflow_connection(connection_id):
 
 def get_incident_creation_config(workflow_name):
     """
-    Retrieves incident creation configuration for a specific workflow based on the workflow name.
-    This function queries the MongoDB collection that stores incident creation parameters to 
-    retrieve the configuration settings for the specified workflow name.
-    Args:workflow_name (str): The name of the workflow whose incident creation configuration is being retrieved.
-    Returns:
-        dict or None: A dictionary containing incident creation configuration for the given workflow name, 
-        or None if the configuration is not found or an error occurs.
-    Raises:
-        Exception: If the MongoDB connection or query fails.
     """
     result = None
     try:
