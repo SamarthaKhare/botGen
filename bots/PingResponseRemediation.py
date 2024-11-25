@@ -80,7 +80,7 @@ def escalate_ticket(device_config,ping_result,service_state):
     Args:
         device_config (dict): Configuration details of the device related to the incident.
         ping_result (str, optional): Result of the ping operation for the device.
-        service_state (str): state of the service,either Restart or Invalid
+        service_state (str): state of the service,either service_state=Restart when update is unsuccessful otherwise service_state=Invalid
     Returns:None
     """
     try:
