@@ -43,7 +43,7 @@ def resolve_ticket(device_config,service_state):
         print(exception)   
 
 
-def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
+def escalate_ticket(device_config,service_state):
 
     """
     For- ServiceRestartRemediation it escalates the incident ticket if the device is not in the expected state or in case of any failure.If the service state indicates a problem
