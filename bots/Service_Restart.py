@@ -5,7 +5,7 @@ from mongo_config import MONGO_CONFIG
 workflow_name='ServiceRestartRemediation'
 def get_service_state(device_config):
     """
-    Checks the current status of a specified Windows service on a remote host using WinRM for service restart remediation.
+    Returns the current state of a specified Windows service on a remote host using WinRM for service restart remediation.
     It runs a PowerShell command to determine if the service is valid and, if so, retrieves its status.
     Arguments- device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
     Returns:- str or None: The status of the service (e.g., "Running", "Stopped), or 'Invalid' if the service is not found. Returns None in case of an exception.
