@@ -85,6 +85,7 @@ def search_incident(filter_query):
 
 def is_device_reachable(device_config,workflow_name):
     """
+    Checks the reachablity of the device.
     Arguments: - device_config (dict): A dictionary containing device configuration details such as device_name,and whether the device is Linux or not.
                - workflow name 
     Returns:str: A string indicating the reachability status ("Success", "Ping Failure", "SSH Failure","Winrm Failure").
