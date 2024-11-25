@@ -51,7 +51,7 @@ def update_status(status,incident,ping_result=None):
 
 def resolve_ticket(device_config,ping_result,service_state):
     """
-     For- PingResponseRemediation it resolves a ticket related to ping response remediation by updating the incident status 
+     It resolves a ticket related to ping response remediation by updating the incident status 
     based on the device configuration, ping results, and the current service state.
     Args:
         device_config (dict): Configuration details of the device related to the incident.
@@ -76,7 +76,7 @@ def resolve_ticket(device_config,ping_result,service_state):
 
 def escalate_ticket(device_config,ping_result,service_state):
     """
-    For- PingResponseRemediation it escalates the ticket for ping response remediation based on the service state and ping results.
+    It escalates the ticket for ping response remediation based on the service state and ping results.
     Args:
         device_config (dict): Configuration details of the device related to the incident.
         ping_result (str, optional): Result of the ping operation for the device.
