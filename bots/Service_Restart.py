@@ -3,7 +3,7 @@ from remote_connection_helper import get_winrm_script_result
 from servicenow import update_incident
 from mongo_config import MONGO_CONFIG
 workflow_name='ServiceRestartRemediation'
-def get_state_ServiceRestartRemediation(device_config):
+def get_service_state(device_config):
     """
     Checks the current status of a specified Windows service on a remote host using WinRM for service restart remediation.
     It runs a PowerShell command to determine if the service is valid and, if so, retrieves its status.
@@ -22,7 +22,7 @@ def get_state_ServiceRestartRemediation(device_config):
     return result
 
 
-def update_state_ServiceRestartRemediation(device_config):
+def update_service_state(device_config):
     """
     Attempts to start a specified Windows service on a remote host using WinRM for service restart remediation.
     It uses a PowerShell command to try starting the service multiple times and checks if the service reaches the "Running" status. 
