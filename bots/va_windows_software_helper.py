@@ -8,21 +8,6 @@ load_dotenv(dotenv_path=dotenv_path)
 
 def get_software_status(host_name : str, software_name : str, version_id = None , is_ntlm=True):
     """
-    Checks the status of a specified software on a remote Windows host.
-
-    Parameters:
-    - host_name (str): The hostname or IP address of the remote Windows device. 
-    - software_name (str): The name of the software to check.
-    - version_id (str, optional): The specific version of the software to check for. If not provided, only the presence of the software is checked.
-    - is_ntlm (bool, optional): Determines whether NTLM authentication is used for the remote connection (default is True).
-
-    Returns:
-    dict: A dictionary with the following keys:
-        - 'status' (bool): True if the software is installed (and version meets the requirement), False otherwise.
-        - 'note' (str): A message indicating the result of the check (software present, version match, etc.).
-
-    Raises:
-    Exception: If an error occurs during the WinRM execution or result processing.
     """
     from remote_connection_helper import get_winrm_result
     result = {'status': False, 'note':None}
@@ -79,19 +64,6 @@ def get_software_status(host_name : str, software_name : str, version_id = None 
 
 def install_software(host_name : str, source_path : str, software_name = None ,arg_list = None,is_ntlm = True):
     """
-    Installs a software package on a remote Windows host.
-    Parameters:
-    - host_name (str): The hostname or IP address of the remote Windows device.
-    - source_path (str): The path to the software installer on the remote device.
-    - software_name (str, optional): The name of the software (used for logging purposes).
-    - arg_list (str, optional): The list of arguments to be passed to the installer. Defaults to "/S" for silent installation.
-    - is_ntlm (bool, optional): Determines whether NTLM authentication is used for the remote connection (default is True).
-    Returns:
-    dict: A dictionary with the following keys:
-        - 'status' (bool): True if the installation script was executed successfully, False otherwise.
-        - 'note' (str): A message indicating the success or failure of the installation.
-    Raises:
-    Exception: If an error occurs during the WinRM execution or result processing.
     """
     from remote_connection_helper import get_winrm_result
     from zif_workflow_helper import get_workflow_config_value
