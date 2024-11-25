@@ -3,9 +3,9 @@ from mongo_config import MONGO_CONFIG
 workflow_name = 'ServiceRestartRemediation'
 
 
-def resolve_ticket_ServiceRestartRemediation(device_config,service_state):
+def resolve_ticket(device_config,service_state):
     """
-    For-ServiceRestartRemediation it resolves the incident ticket by updating its state and incident payload,it checks the 
+    This function resolves the incident ticket by updating its state and incident payload,it checks the 
     provided service state and updates the ticket accordingly with appropriate work and close notes.
     Arguments:
     - device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
@@ -43,14 +43,14 @@ def resolve_ticket_ServiceRestartRemediation(device_config,service_state):
         print(exception)   
 
 
-def escalate_ticket_ServiceRestartRemediation(device_config,service_state):
+def escalate_ticket(device_config,service_state):
 
     """
-    For- ServiceRestartRemediation it escalates the incident ticket if the device is not in the expected state or in case of any failure.If the service state indicates a problem
+    This function escalates the incident ticket if the device is not in the expected state or in case of any failure.If the service state indicates a problem
     ('Restart' or 'Failed'), it updates the incident with relevant work notes to escalate the issue for further attention.
     Arguments:
     - device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
-    - service_state (str): state of the service either Restart or Invalid.
+    - service_state (str): state of the service either service_state=Restart when update is unsuccessful otherwise service_state=Invalid
     Returns:None
     """
     try:
