@@ -293,11 +293,6 @@ def start_application_service(host_name, service_list):
 
 def check_service_status(services):
     """
-    Checks the status of multiple services.
-    Args:
-        services (list): A list of dictionaries, where each dictionary contains a service's name and status. 
-        Example: [{'name': 'service1', 'status': 'SUCCESS'}, ...]
-    Returns:bool: Returns True if all services have a status of 'SUCCESS', otherwise returns False.
     """
     result = True
     for service in services:
@@ -352,13 +347,6 @@ def get_program_type(program_name):
 
 def check_program_status(host_name, program_name, version_id=None,is_ntlm=True):
     """
-    Checks whether a specific program (optionally a specific version) is installed on a remote Windows host.
-    Args:
-        host_name (str): The target host's address.
-        program_name (str): The name of the program to check.
-        version_id (str, optional): The version of the program to check. If not provided, checks for any version.
-        is_ntlm (bool, optional): Indicates if NTLM authentication is being used. Default is True.
-    Returns:dict: A dictionary with keys 'status' (True if installed, False otherwise) and 'note' (details about the installation).
     """
     from remote_connection_helper import get_winrm_result
     try:
