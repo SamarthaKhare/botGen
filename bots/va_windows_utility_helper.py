@@ -517,15 +517,6 @@ def check_patch_status(host_name, patch_name, is_ntlm=True):
 
 def restart_service(host_name, service_name, is_ntlm=True):
     """
-    Function to restart a Windows service on a remote device.
-    Parameters:
-    host_name (str): The hostname or IP address of the target device.
-    service_name (str): The name of the service to restart.
-    is_ntlm (bool, optional): Flag indicating whether NTLM authentication should be used. Default is True.
-    Returns:
-    dict: A dictionary with two keys:
-          'status' (bool): True if the service was successfully restarted, otherwise False.
-          'note' (str): A message indicating whether the service was restarted or not.
     """
     from remote_connection_helper import get_winrm_result
     result = {'status': False, 'note': ''}
