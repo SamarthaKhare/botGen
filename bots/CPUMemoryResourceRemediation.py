@@ -101,8 +101,7 @@ def get_actual_threshold(device_config):
             - "alert_type" (str): The type of alert, either 'CPU' or 'MEMORY'.
             - "is_linux" (bool): Specifies if the device is a Linux machine.
             - "device_name" (str): The name or identifier of the device.
-    Returns:str or None: The actual threshold value as a string if successfully retrieved and processed, 
-        or None if an error occurs or the threshold is unavailable.
+    Returns:str or None: Returns the numerical value of actual threshold or None if an error occurs or the threshold is unavailable.
     """
     try:
         actual_threshold = None
