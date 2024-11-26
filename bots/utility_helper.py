@@ -40,13 +40,6 @@ def remove_spaces(value):
 
 def get_workflow_payload(incident):
     """
-	This function extracts the relevant input parameters/device configuration such as device name, service name, alert type, 
- 	and threshold values by parsing the incident description and applying search patterns.
-	Arguments:- incident (dict): A dictionary containing incident details, which may include "subcategory", "device_name",sys_id", "number", "alert_type", etc.
-	Returns:
-	dict or None: A dictionary containing the constructed payload with fields such as "sys_id", "number", 
-	"device_name", "threshold_value", "alert_type", and "is_linux","service_name". If essential data is missing, 
-	it returns None.
     """
     #search pattern
     pattern = r"(\w+(?: \w+)*):\s*([^\n:]+)"
