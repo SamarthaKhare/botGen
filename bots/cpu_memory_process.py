@@ -34,13 +34,6 @@ Get-Counter '\Process(*)\ID Process','\Process(*)\% Processor Time' -ErrorAction
 def get_total_cpu_usage(host_name,retry_count,is_ntlm=True):
      
     """
-    Calculates the average total CPU usage on a remote Windows host using WinRM. The function runs a 
-    PowerShell command to get the average CPU load percentage.
-    Arguments:
-    - host_name (str): The name or IP address of the remote host.
-    - retry_count (int): The number of times to retry the operation.
-    - is_ntlm (bool, optional): Specifies whether to use NTLM authentication (default is True).
-    Returns-str: The average CPU load percentage as a string. Returns None if an error occurs.
     """
     result = None
     try:
@@ -60,16 +53,6 @@ def get_total_cpu_usage(host_name,retry_count,is_ntlm=True):
 
 def get_top_memory_process(host_name,retry_count,count=5,is_ntlm=True):
     """
-    Retrieves the top memory-consuming processes on a remote Windows host using WinRM. The function 
-    executes a PowerShell command to gather process IDs, names, and memory usage, sorted in descending 
-    order by memory usage, and returns the top 'count' results.
-    Arguments:
-    - host_name (str): The name or IP address of the remote host.
-    - retry_count (int): The number of times to retry the operation.
-    - count (int, optional): The number of top memory-consuming processes to retrieve (default is 5).
-    - is_ntlm (bool, optional): Specifies whether to use NTLM authentication (default is True).
-    Returns:
-    - str: A formatted string of top memory processes with process ID, name, and memory usage percentage.Returns None if an error occurs.
     """    
     result = None
     try:
@@ -103,14 +86,6 @@ ForEach-Object {
 
 def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
     """
-    Calculates the total memory usage percentage on a remote Windows host using WinRM. The function runs 
-    a PowerShell command to fetch the total visible memory size and free physical memory to compute memory 
-    usage.
-    Arguments:
-    - host_name (str): The name or IP address of the remote host.
-    - retry_count (int): The number of times to retry the operation.
-    - is_ntlm (bool, optional): Specifies whether to use NTLM authentication (default is True).
-    Returns- str: The memory usage percentage as a formatted string. Returns None if an error occurs.
     """
 
     result = None
@@ -129,14 +104,6 @@ def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
 
 def get_top_cpu_consuming_process(host_name, process_count, retry_count):
     """
-    Fetches the top CPU-consuming processes on a remote Linux host. The function executes a command over 
-    SSH to retrieve process IDs, names, and normalized CPU usage, and returns a list of the specified 
-    number of top CPU-consuming processes.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - process_count (int): The number of top CPU-consuming processes to retrieve.
-    - retry_count (int): The number of times to retry the operation.
-    Returns:-list: A list of dictionaries containing process ID, command name, and CPU usage percentage. Returns an empty list if an error occurs.
     """
     command_result = None
     cpu_process = []
@@ -160,14 +127,6 @@ def get_top_cpu_consuming_process(host_name, process_count, retry_count):
 
 def get_top_memory_consuming_process(host_name,process_count,retry_count):
     """
-    Retrieves the top memory-consuming processes on a remote Linux host. The function executes a command 
-    over SSH to gather process IDs, names, and memory usage percentages, and returns a list of the 
-    specified number of top memory-consuming processes.
-    Arguments:
-    - host_name (str): The name or IP address of the remote Linux host.
-    - process_count (int): The number of top memory-consuming processes to retrieve.
-    - retry_count (int): The number of times to retry the operation.
-    Returns:-list: A list of dictionaries containing process ID, command name, and memory usage percentage.Returns an empty list if an error occurs.
     """
     command_result = None
     process_count=process_count+1
