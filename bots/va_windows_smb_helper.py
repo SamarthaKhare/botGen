@@ -65,17 +65,6 @@ def enable_smb(host_name, smb_version, is_ntlm=True):
 
 def check_smb_status(host_name, smb_version, is_ntlm=True):
     """
-    Checks the status of the specified SMB (Server Message Block) protocol version on a remote Windows server.
-    This function connects to a remote Windows server using WinRM and queries whether a specific version of the 
-    SMB protocol (e.g., SMB1, SMB2, or SMB3) is enabled or disabled. It executes a PowerShell command to check the status.
-    Args:
-        host_name (str): The hostname or IP address of the remote Windows server.
-        smb_version (int/str): The version of SMB protocol to check (e.g., '1', '2', or '3').
-        is_ntlm (bool, optional): A flag indicating whether NTLM authentication is required. If True, NTLM authentication is used. Defaults to True.
-    Returns: str: 
-            - "Enabled" if the specified SMB version is enabled.
-            - "Disabled" if the specified SMB version is disabled.
-            - "Error Occurred" if an exception is raised during execution.
     """
     from remote_connection_helper import get_winrm_result
     try:
