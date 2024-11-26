@@ -1,11 +1,8 @@
 
 from remote_connection_helper import get_winrm_script_result
-from servicenow import update_incident
-from mongo_config import MONGO_CONFIG
-workflow_name='ServiceRestartRemediation'
 def get_service_state(device_config):
     """
-    It check the current state of a specified Windows service on a remote host using WinRM.For ServiceRestartRemediation and PingResponseRemediation 
+    For Remediation purposes it check the current state of a specified Windows service on a remote host using WinRM.For ServiceRestartRemediation and PingResponseRemediation 
     Arguments- device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
     Returns:- str or None: The state of the service (e.g., "Running", "Stopped), or 'Invalid' if the service is not found. Returns None in case of an exception.
     """
