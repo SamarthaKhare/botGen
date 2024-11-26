@@ -240,16 +240,7 @@ def upsert_all_documents(collection_name, query, new_values):
 
 def aggregate_query(collection_name, query, projection=None, unwind=None, child_object=None):
     """
-    Performs an aggregation query on a MongoDB collection.
-    Args:
-        collection_name (str): The name of the MongoDB collection to query.
-        query (dict): The aggregation pipeline query.
-        projection (dict, optional): A projection to specify which fields to include or exclude. Defaults to None.
-        unwind (bool, optional): Specifies if the aggregation pipeline should unwind the child object. Defaults to None.
-        child_object (str, optional): The field to unwind if `unwind` is True. Defaults to None.
-    Returns: mongo_documents (list or None): A list of documents resulting from the aggregation query, or None if no matches are found.
-    Raises:
-        Exception: If an error occurs while executing the aggregation query, the exception will be caught and printed.
+   
     """
     mongo_documents = None
     try:
