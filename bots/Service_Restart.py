@@ -5,7 +5,7 @@ from mongo_config import MONGO_CONFIG
 workflow_name='ServiceRestartRemediation'
 def get_service_state(device_config):
     """
-    Returns the current state of a specified Windows service on a remote host using WinRM.
+    For Remediation purposes it returns the current state of a specified Windows service on a remote host using WinRM.
     Arguments- device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
     Returns:- str or None: The status of the service (e.g., "Running", "Stopped), or 'Invalid' if the service is not found. Returns None in case of an exception.
     """
@@ -23,7 +23,7 @@ def get_service_state(device_config):
 
 def update_service_state(device_config):
     """
-    Attempts update the service state by starting thw specified Windows service on a remote host using WinRM .
+    For Remediation purposes it attempts update the service state by starting thw specified Windows service on a remote host using WinRM .
     It try starting the service multiple times and checks if the service reaches the "Running" status. 
     Arguments- device_config (dict): A dictionary containing the device details like 'sys_id', 'device_name', and 'service_name'.
     Returns:- str or None: "SUCCESS" if the service starts successfully, "FAILURE" if it fails to start, or None in case of an exception.
