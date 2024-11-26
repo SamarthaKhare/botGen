@@ -98,7 +98,7 @@ def resolve_ticket_CPUResourceRemediation(device_config,total_usage):
             update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
             return
         if device_config is not None and total_usage is not None:
-            device_config['total_usage'] = total_usage
+            
             update_status('RESOLVED',incident=device_config)
         else:
             print("Device Config or actual value is empty.")
@@ -150,56 +150,54 @@ def get_actual_threshold(device_config):
     except Exception as exception:
         print(exception)
 
-
-def escalate_ticket_CPUResourceRemediation(device_config,total_usage,retry_count):
+def get_top_utilization_process(device_config):
     """
-    for-CPUMemoryResourceRemediation it escalates the ticket if the resource usage (CPU or Memory) exceeds a specified threshold. The 
-    function retrieves the top resource-consuming processes for the device (based on whether it's 
-    Linux or not) and triggers an escalation if the process information is available. The status is 
-    updated with the top processes and their results.
+    This function retrives the top resource-consuming (e.g top cpu or memory consuming) processes for the device
+    based on whether it's Linux or not.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
-    alert type, and whether the device is Linux-based.
-    - total_usage (float): The total resource usage value.
-    - retry_count (int): The number of retries for fetching resource data.
+    alert type, and is_linux(flag for linux based devices)
+    Return: Top resource consuming process on the device
+    """
+    top_process=None
+    if device_config["alert_type"] == 'CPU':
+        if device_config['is_linux']:
+            print("linux case")
+            top_process = get_top_cpu_consuming_process(device_config['device_name'])
+        else:
+            top_process = get_top_cpu_process(device_config["device_name"])
+    elif device_config["alert_type"] == 'MEMORY':
+        if device_config['is_linux']:
+            print('linux case')
+            top_process = get_top_memory_consuming_process(device_config['device_name'])
+        else:
+            top_process = get_top_memory_process(device_config["device_name"])
+    else:
+        print("Alert type is unknown")
+    return top_process
+    
+    
+def escalate_ticket_CPUResourceRemediation(device_config,top_process):
+    """
+    for-CPUMemoryResourceRemediation.It triggers the escalation of incident using the top resource 
+    consuming process information and updates the incident with the top processes.
+    Arguments:
+    - device_config (dict): A dictionary containing device configuration details, such as device name, 
+    alert type, and is_linux(flag for linux based devices).
+    -top_process- the top resource-consuming processes for the device
     Returns:None
     """
     try:
-        if all([device_config,total_usage,retry_count]):
-            device_config['total_usage'] = total_usage
-            if device_config["alert_type"] == 'CPU':
-                result = None
-                if device_config['is_linux']:
-                    print("linux case")
-                    top_process = get_top_cpu_consuming_process(device_config['device_name'],5,retry_count)
-                    print(top_process)
-                    result = get_result_table(top_process,True)
-                else:
-                    top_process = get_top_cpu_process(device_config["device_name"],5,retry_count)
-                    print(top_process)
-                    if top_process is not None:
-                        top_process = top_process.split('~~~')[:-1]
-                        result = get_result_table(top_process,False)
-                if result is not None:
-                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
-                else:
-                    print("CPU Top Process Result is empty")
-
-            elif device_config["alert_type"] == 'MEMORY':
-                if device_config['is_linux']:
-                    print('linux case')
-                    top_process = get_top_memory_consuming_process(device_config['device_name'],5,retry_count)
-                    result = get_result_table(top_process,True)
-                else:
-                    top_process = get_top_memory_process(device_config["device_name"],5,retry_count)
-                    if top_process is not None:
-                        top_process = top_process.split('~~~')[:-1]
-                        result = get_result_table(top_process,False)
-                if result is not None:
-                    update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
-                else:
-                    print("Memory Top Process Result is None.")
+        result=None
+        if device_config['is_linux']:
+            result = get_result_table(top_process,True)
+        else:        
+            if top_process is not None:
+                top_process = top_process.split('~~~')[:-1]
+                result = get_result_table(top_process,False)
+        if result is not None:
+            update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
         else:
-            print('Device config is none.')
+            print("Can not process the top process")
     except Exception as exception:
         print(exception)
