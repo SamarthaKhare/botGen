@@ -93,7 +93,7 @@ def update_status(status,device_config,process=None,process_result=None):
 
 def get_actual_threshold(device_config):
     """
-    Determines and retrieves the total usage of cpu/memory  for a given device based on its configuration.
+    for-CPUMemoryResourceRemediation Determines and retrieves the total usage of cpu/memory  for a given device based on its configuration.
     The function takes in the `device_config` dictionary containing device settings such as alert type, 
     OS type, and device name.If the threshold is successfully retrieved, it is processed and returned 
     as a cleaned string else this function update incident with an escalation status.
@@ -137,7 +137,7 @@ def get_actual_threshold(device_config):
 
 def get_top_utilization_process(device_config):
     """
-    This function retrives the top five resource consuming processes (e.g top cpu or memory consuming) for the device
+    for-CPUMemoryResourceRemediation This function retrives the top five resource consuming processes (e.g top cpu or memory consuming) for the device
     based on whether it's Linux or not.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
