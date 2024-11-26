@@ -68,9 +68,9 @@ def update_incident_status(status,incident,payload,process=None,process_result=N
 
 def update_status(status,device_config,process=None,process_result=None):
     """
-    for-CPUMemoryResourceRemediation it updates the incident and resolves it using the approriate incident payload. 
+    for-CPUMemoryResourceRemediation it updates and resolves the incident and using the approriate incident payload(containg appropriate resolution notes). 
     Arguments:
-    -status(str): Its 'RESOLVED' in case incident is resolved  or user specific when incident is escalated 
+    -status(str): Its 'RESOLVED' in case we are resolving the incident else user specific when incident is escalated 
     - device_config (dict): A dictionary containing device configuration details.
     -process- (Only for escalation) the top resource utilization processes for the .Defaults to None
     -process_result: (Only for escalation)  tabular result of top process.Defaults to None
