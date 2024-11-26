@@ -152,7 +152,7 @@ def get_actual_threshold(device_config):
 
 def get_top_utilization_process(device_config):
     """
-    This function retrives the top resource-consuming (e.g top cpu or memory consuming) processes for the device
+    This function retrives the top five resource consuming (e.g top cpu or memory consuming) processes for the device
     based on whether it's Linux or not.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
