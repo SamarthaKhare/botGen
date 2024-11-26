@@ -83,6 +83,20 @@ def search_incident(filter_query):
 		print(exception)
 	return result
 
+def work_in_progress(device_config,workflow_name):
+    """
+    """
+    try:
+        config = MONGO_CONFIG[workflow_name]
+        if config is not None and 'WIP' in config:
+            incident_payload = config['WIP']['INCIDENT_PAYLOAD']
+            if update_incident(device_config['sys_id'],incident_payload) not None:
+                return True
+            return False
+    except Exception as exception:
+        return False
+        print(exception)
+
 def is_device_reachable(device_config,workflow_name):
     """
     Checks the reachablity of the device.
@@ -93,10 +107,6 @@ def is_device_reachable(device_config,workflow_name):
     status = None
     try: 
         if device_config is not None: 
-            config = MONGO_CONFIG[workflow_name]
-            if config is not None and 'WIP' in config:
-                incident_payload = config['WIP']['INCIDENT_PAYLOAD']
-                update_incident(device_config['sys_id'],incident_payload)
             retry_count = 3
             if retry_count is None:
                 retry_count = 3
