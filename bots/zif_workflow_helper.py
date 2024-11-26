@@ -219,11 +219,6 @@ def get_va_configuration_document(title, os_version):
 
 def get_va_transaction_document(objectId: str):
     """
-    Retrieves a VA transaction document from the MongoDB collection based on the provided object ID.
-    Args:objectId (str): The unique identifier (_id) of the transaction document to be retrieved.
-    Returns:dict: The document retrieved from the 'automation_va_transaction' collection if found, otherwise None.
-    Raises:
-        Exception: Logs any exceptions encountered during the MongoDB query.
     """
     from zif_mongo_helper import get_single_document
     result = None
