@@ -66,44 +66,29 @@ def update_incident_status(status,incident,payload,process=None,process_result=N
     except Exception as exception:
         print(exception)
 
-def update_status(status,incident,process=None,process_result=None):
+def update_status(status,device_config,process=None,process_result=None):
     """
+    for-CPUMemoryResourceRemediation it updates the incident and resolves it using the approriate incident payload. 
+    Arguments:
+    -status(str): Its 'RESOLVED' in case incident is resolved  or user specific when incident is escalated 
+    - device_config (dict): A dictionary containing device configuration details.
+    -process- (Only for escalation) the top resource utilization processes for the .Defaults to None
+    -process_result: (Only for escalation)  tabular result of top process.Defaults to None
+    Returns:- None
     """
     try:
         cpu_config = MONGO_CONFIG['CPUMemoryResourceRemediation']
         if status in cpu_config:
             incident_payload = cpu_config[status]['INCIDENT_PAYLOAD']
             if process_result is not None:
-                update_incident_status(status,incident,incident_payload,process, process_result)  
+                update_incident_status(status,device_config,incident_payload,process, process_result)  
             else:
-                update_incident_status(status,incident,incident_payload)
+                update_incident_status(status,device_config,incident_payload)
         else:
             print(f"{status} is empty")
     except Exception as exception:
         print(exception)
 
-
-   
-def resolve_ticket_CPUResourceRemediation(device_config,total_usage):
-    """
-    for-CPUMemoryResourceRemediation it updates the incident status to "RESOLVED" with the provided device configuration and total cpu resource usage 
-    The device configuration is updated with the total usage before calling the update_status function to mark the incident as resolved.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details.
-    - total_usage (float): The total usage value to be added to the device configuration.
-    Returns:- None
-    """
-    try:
-        if device_config['is_comment_code']=='True' or device_config['is_vault_agent']=='True':
-            update_status('ESCALATE_CLUSTER_SERVERS',incident=device_config)
-            return
-        if device_config is not None and total_usage is not None:
-            
-            update_status('RESOLVED',incident=device_config)
-        else:
-            print("Device Config or actual value is empty.")
-    except Exception as exception:
-        print(exception)
 
 
 def get_actual_threshold(device_config):
@@ -152,7 +137,7 @@ def get_actual_threshold(device_config):
 
 def get_top_utilization_process(device_config):
     """
-    This function retrives the top five resource consuming (e.g top cpu or memory consuming) processes for the device
+    This function retrives the top five resource consuming processes (e.g top cpu or memory consuming) for the device
     based on whether it's Linux or not.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
@@ -198,6 +183,6 @@ def escalate_ticket_CPUResourceRemediation(device_config,top_process):
         if result is not None:
             update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
         else:
-            print("Can not process the top process")
+            print("Can not find the top process")
     except Exception as exception:
         print(exception)
