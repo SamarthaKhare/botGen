@@ -263,16 +263,6 @@ def get_input_values_by_title(document_details: dict, title: str):
 
 def update_va_transaction_status(document_id: str, status: str, remarks: str, execution_date=None, rollback_params=None):
     """
-    Updates the status and other details of a VA transaction document in MongoDB.
-    Args:
-        document_id (str): The unique identifier (_id) of the document to be updated.
-        status (str): The new status to set for the document.
-        remarks (str): Remarks or notes associated with the status update.
-        execution_date (datetime, optional): The date and time when the workflow was executed.
-        rollback_params (dict, optional): Parameters for rollback in case of failure.
-
-    Raises:
-        Exception: Logs any exceptions encountered during the update operation.
     """
     from datetime import datetime
     from bson.objectid import ObjectId
