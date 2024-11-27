@@ -1,6 +1,6 @@
 import time
 from remote_connection_helper import get_winrm_script_result,get_ssh_script_result,get_ssh_client
-def get_top_cpu_process(host_name,retry_count,count=5,is_ntlm=True):
+def get_top_cpu_process(host_name,is_ntlm=True):
         result = None
         try:
                 if host_name is not None:
@@ -31,7 +31,7 @@ Get-Counter '\Process(*)\ID Process','\Process(*)\% Processor Time' -ErrorAction
         return result
 
 
-def get_total_cpu_usage(host_name,retry_count,is_ntlm=True):
+def get_total_cpu_usage(host_name,is_ntlm=True):
      
     """
     """
@@ -51,7 +51,7 @@ def get_total_cpu_usage(host_name,retry_count,is_ntlm=True):
         print(exception)
     return result
 
-def get_top_memory_process(host_name,retry_count,count=5,is_ntlm=True):
+def get_top_memory_process(host_name,is_ntlm=True):
     """
     """    
     result = None
@@ -84,7 +84,7 @@ ForEach-Object {
             print(exception)
     return result
 
-def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
+def get_total_memory_usage(host_name,is_ntlm=True):
     """
     """
 
@@ -102,7 +102,7 @@ def get_total_memory_usage(host_name,retry_count,is_ntlm=True):
         print(exception)
     return result
 
-def get_top_cpu_consuming_process(host_name, process_count, retry_count):
+def get_top_cpu_consuming_process(host_name, process_count):
     """
     """
     command_result = None
@@ -125,7 +125,7 @@ def get_top_cpu_consuming_process(host_name, process_count, retry_count):
         print(exception)
     return cpu_process
 
-def get_top_memory_consuming_process(host_name,process_count,retry_count):
+def get_top_memory_consuming_process(host_name,process_count):
     """
     """
     command_result = None
