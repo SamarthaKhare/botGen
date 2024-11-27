@@ -83,7 +83,7 @@ def work_in_progress(device_config,workflow_name):
         config = MONGO_CONFIG[workflow_name]
         if config is not None and 'WIP' in config:
             incident_payload = config['WIP']['INCIDENT_PAYLOAD']
-            if update_incident(device_config['sys_id'],incident_payload) not None:
+            if update_incident(device_config['sys_id'],incident_payload) is not None:
                 return True
             return False
     except Exception as exception:
