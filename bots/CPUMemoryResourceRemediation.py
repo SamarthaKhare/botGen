@@ -68,9 +68,9 @@ def update_incident_status(status,incident,payload,process=None,process_result=N
 
 def update_status(status,device_config,process=None,process_result=None):
     """
-    for-CPUMemoryResourceRemediation it updates and resolves the incident and using the approriate incident payload(containg appropriate resolution notes). 
+    for-CPUMemoryResourceRemediation it updates and resolves the incident and using the approriate resolution notes. 
     Arguments:
-    -status(str): Its 'RESOLVED' in case we are resolving the incident when actual resource is less than the provided threshold else its 'ESCALATE_RESOURCE_HIGH_USAGE'
+    -status(str): status='RESOLVED' in case we are resolving the incident when actual resource is less than the provided threshold else status='ESCALATE_RESOURCE_HIGH_USAGE'
     - device_config (dict): A dictionary containing device configuration details.
     -process- (Only for escalation) the top resource utilization processes for the .Defaults to None
     -process_result: (Only for escalation) tabular result of top utilization process.Defaults to None
@@ -136,7 +136,7 @@ def get_actual_threshold(device_config):
 
 def get_top_utilization_process(device_config):
     """
-    This function retrives the top five resource consuming processes (e.g top cpu or memory consuming) for the device
+    If users want the top utilization process this function retrives the top five resource consuming processes (e.g top cpu or memory consuming) for the device
     based on whether it's Linux or not.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
@@ -161,18 +161,16 @@ def get_top_utilization_process(device_config):
     return top_process
     
     
-def escalate_with_top_process(device_config,top_process=None):
+def escalate_with_top_process(device_config,top_process):
     """
-    It updates the incident with the top resource consuming process if they are not none.
+    Only if user wants the top utilization process this function updates the incident with the top resource consuming process.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
     alert type, and is_linux(flag for linux based devices).
-    -top_process- the top resource-consuming processes for the device.Defaults to None
+    -top_process- the top resource-consuming processes for the device
     Returns:None
     """
     try:
-        if top_process is None:
-             update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config)
         result=None
         if device_config['is_linux']:
             result = get_result_table(top_process,True)
