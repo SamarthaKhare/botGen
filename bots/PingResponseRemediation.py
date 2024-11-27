@@ -56,7 +56,7 @@ def resolve_ticket(device_config,ping_result,service_state):
     Args:
         device_config (dict): Configuration details of the device related to the incident.
         ping_result (str): Result of the ping operation for the device.
-        service_state (str): state of the service,if service update was successfull service_state=Restart else service_state=Running.It is used to customize the incident payload and close notes.
+        service_state (str): if service update was SUCCESS service_state='Restart' else service_state='Running'.It is used to customize the incident payload and close notes.
     Returns:None
     """
     try:
@@ -80,7 +80,7 @@ def escalate_ticket(device_config,ping_result,service_state):
     Args:
         device_config (dict): Configuration details of the device related to the incident.
         ping_result (str, optional): Result of the ping operation for the device.
-        service_state (str): state of the service,either service_state=Restart when update is unsuccessful otherwise service_state=Invalid
+        service_state (str): if service update was not SUCCESS service_state='Restart' otherwise service_state=Invalid
     Returns:None
     """
     try:
