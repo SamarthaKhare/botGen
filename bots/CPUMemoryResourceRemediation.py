@@ -43,8 +43,6 @@ def update_incident_status(status,incident,payload,process=None,process_result=N
         if status not in ["WIP", "RESOLVED"]:
             payload["assignment_group"] = incident.get('resolver_id', None)
             resolver = incident.get('resolver', None)
-            print(payload["assignment_group"])
-
         if "close_notes" in payload:
             payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident['alert_type'])
         if "work_notes" in payload:
@@ -122,12 +120,13 @@ def get_actual_threshold(device_config):
                     actual_threshold = get_total_memory_usage(device_name,retry_count)
             if actual_threshold is not None:
                 actual_threshold = actual_threshold.encode().decode().strip()
+                device_config['total_usage']=actual_threshold
                 print(f'actual thresold is {actual_threshold}')
             else:
                 print("Threshold empty")
                 device_config['failureType'] = "SSH Failure"
                 device_config['result_time'] = 3
-                update_status('ESCALATE_DEVICE_UNREACHABLE',incident=device_config)
+                update_status('ESCALATE_DEVICE_UNREACHABLE',device_config)
         else:
             print("Device Config is None")
         return actual_threshold
@@ -179,7 +178,7 @@ def escalate_with_top_process(device_config,top_process):
                 top_process = top_process.split('~~~')[:-1]
                 result = get_result_table(top_process,False)
         if result is not None:
-            update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
+            update_status('ESCALATE_RESOURCE_HIGH_USAGE',device_config,process=top_process,process_result=result)
         else:
             print("Can not find the top process")
     except Exception as exception:
