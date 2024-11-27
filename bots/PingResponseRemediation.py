@@ -1,4 +1,3 @@
-from Service_Restart import get_service_state_, update_service_state
 from servicenow import update_incident
 from mongo_config import MONGO_CONFIG
 workflow_name = 'PingResponseRemediation'
@@ -29,7 +28,7 @@ def update_status(status,incident,ping_result=None):
     """
     """
     try:
-        ping_config = MONGO_CONFIG['PING_REMEDIATE_CONFIG']
+        ping_config = MONGO_CONFIG['PingResponseRemediation']
         if status in ping_config:
             print("updating status")
             print(incident)
@@ -42,7 +41,7 @@ def update_status(status,incident,ping_result=None):
                 update_incident_status(status,incident,incident_payload)
             if incident.get('result_time',None) is not None:
                 print('updating metrics')
-                incident_payload['work_notes'])
+                incident_payload(['work_notes'])
         else:
             print(f"{status} is empty")
     except Exception as exception:
@@ -63,9 +62,9 @@ def resolve_ticket(device_config,ping_result,service_state):
         if all([device_config,service_state,ping_result]) :
             if ping_result is not None:
                 if service_state == 'Restart':
-                    update_status("SERVICE_STARTED",device_config,ping_result)
+                    update_status("RESOLVED",device_config,ping_result)
                 elif service_state == 'Running':
-                    update_status("SERVICE_RUNNING",device_config,ping_result)
+                    update_status("RUNNING",device_config,ping_result)
             else:
                 print("ping output is none")
         else:
@@ -86,7 +85,7 @@ def escalate_ticket(device_config,ping_result,service_state):
     try:
         if all([device_config,service_state,ping_result]):
             if service_state != 'Invalid':
-                update_status("RESTART_FAILURE",device_config,ping_result)
+                update_status("ESCALATE",device_config,ping_result)
             else:
                 print("Invalid service")
         else:
