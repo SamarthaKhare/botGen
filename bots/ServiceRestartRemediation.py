@@ -70,3 +70,4 @@ def escalate_ticket(device_config,service_state):
             print("device_config or service_state is none")
     except Exception as exception:
         print(exception)
+
