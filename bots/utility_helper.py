@@ -56,6 +56,8 @@ def get_workflow_payload(incident):
     for key, value in device_config.items():
         if isinstance(value, str) and value.lower() in ['true','false']:
             device_config[key] = value.lower() == 'true'
+    if 'is_linux' not in device_config:
+        device_config['is_linux']=False
     print(device_config)
     return device_config
 
