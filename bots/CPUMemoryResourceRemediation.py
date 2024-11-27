@@ -163,7 +163,7 @@ def get_top_utilization_process(device_config):
     
 def escalate_with_top_process(device_config,top_process):
     """
-    Only if user wants the top utilization process this function updates the incident with the top resource consuming process.
+    Only if user wants the top utilization process this function updates and resolves the incident with the top resource consuming process.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
     alert type, and is_linux(flag for linux based devices).
