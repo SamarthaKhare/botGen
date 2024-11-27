@@ -161,7 +161,7 @@ def get_top_utilization_process(device_config):
     return top_process
     
     
-def escalate_ticket_CPUResourceRemediation(device_config,top_process):
+def escalate_with_top_process(device_config,top_process):
     """
     It updates the incident with the top processes when actual resource is greater than the 
     provided threshold and top resource consuming process information is provided .
