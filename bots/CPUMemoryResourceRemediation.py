@@ -136,7 +136,7 @@ def get_actual_threshold(device_config):
 
 def get_top_utilization_process(device_config):
     """
-    for-CPUMemoryResourceRemediation This function retrives the top five resource consuming processes (e.g top cpu or memory consuming) for the device
+    This function retrives the top five resource consuming processes (e.g top cpu or memory consuming) for the device
     based on whether it's Linux or not.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
@@ -163,7 +163,7 @@ def get_top_utilization_process(device_config):
     
 def escalate_ticket_CPUResourceRemediation(device_config,top_process):
     """
-    for-CPUMemoryResourceRemediation.It updates the incident with the top processes when actual resource is greater than the 
+    It updates the incident with the top processes when actual resource is greater than the 
     provided threshold and top resource consuming process information is provided .
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
