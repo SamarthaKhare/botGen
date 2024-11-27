@@ -161,27 +161,30 @@ def get_top_utilization_process(device_config):
     return top_process
     
     
-def escalate_ticket_CPUResourceRemediation(device_config,top_process):
+def escalate_ticket_CPUResourceRemediation(device_config,top_process=None):
     """
-    for-CPUMemoryResourceRemediation.It triggers the escalation of incident using the top resource 
-    consuming process information and updates the incident with the top processes.
+    for-CPUMemoryResourceRemediation.It triggers the escalation of incident when actual resource is greater than the provides threshold.
+    If user has passed top resource consuming process information it updates the incident with the top processes.
     Arguments:
     - device_config (dict): A dictionary containing device configuration details, such as device name, 
     alert type, and is_linux(flag for linux based devices).
-    -top_process- the top resource-consuming processes for the device
+    -top_process- the top resource-consuming processes for the device.Defaults to None
     Returns:None
     """
     try:
-        result=None
-        if device_config['is_linux']:
-            result = get_result_table(top_process,True)
-        else:        
-            if top_process is not None:
-                top_process = top_process.split('~~~')[:-1]
-                result = get_result_table(top_process,False)
-        if result is not None:
-            update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
+        if top_process is None:
+            update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config)
         else:
-            print("Can not find the top process")
+            result=None
+            if device_config['is_linux']:
+                result = get_result_table(top_process,True)
+            else:        
+                if top_process is not None:
+                    top_process = top_process.split('~~~')[:-1]
+                    result = get_result_table(top_process,False)
+            if result is not None:
+                update_status('ESCALATE_RESOURCE_HIGH_USAGE',incident=device_config,process=top_process,process_result=result)
+            else:
+                print("Can not find the top process")
     except Exception as exception:
         print(exception)
