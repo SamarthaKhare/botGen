@@ -102,7 +102,7 @@ def get_total_memory_usage(host_name,is_ntlm=True):
         print(exception)
     return result
 
-def get_top_cpu_consuming_process(host_name, process_count):
+def get_top_cpu_consuming_process(host_name, process_count=5):
     """
     """
     command_result = None
@@ -125,7 +125,7 @@ def get_top_cpu_consuming_process(host_name, process_count):
         print(exception)
     return cpu_process
 
-def get_top_memory_consuming_process(host_name,process_count):
+def get_top_memory_consuming_process(host_name,process_count=5):
     """
     """
     command_result = None
