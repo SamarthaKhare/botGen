@@ -7,7 +7,7 @@ def update_incident_status(status,incident,payload,ping_result=None):
     """
     try:
         print("updating status")
-        if "close_notes" in payload:
+        if "close_notes" in payload: 
             payload['close_notes'] = payload["close_notes"].format(
                                 DEVICE_NAME=incident['device_name'],
                                 SERVICE_NAME=incident.get('service_name',None))
