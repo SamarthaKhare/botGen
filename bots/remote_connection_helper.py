@@ -177,7 +177,8 @@ def get_ssh_script_result(host_name, command_text, sudo_access=True, db_connecti
             if result != "Success" and stderr is not None:
                 print("ERROR: ", str(stderr))
             if len(ssh_result) >= 1:
-                script_result = ssh_result[-1].strip().replace('\r', '').replace('\n', '')
+                ssh_result[-1].strip().replace('\r', '').replace('\n', '')
+                return ssh_result
         return script_result
     except Exception as exception:
         print(f"Error executing SSH command: {exception}")
