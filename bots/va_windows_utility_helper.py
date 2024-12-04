@@ -291,15 +291,6 @@ def start_application_service(host_name, service_list):
     #check it properly how its done 
     return result_list
 
-def check_service_status(services):
-    """
-    """
-    result = True
-    for service in services:
-        if service["status"]!="SUCCESS":
-            return False
-    return result
-
 
 def copy_file_folder(host,source,destination,is_ntlm=True):
     """
@@ -503,34 +494,6 @@ def check_patch_status(host_name, patch_name, is_ntlm=True):
         result['note']= f"An error occurred: {str(exception)}"
     return result
 
-def restart_service(host_name, service_name, is_ntlm=True):
-    """
-    """
-    from remote_connection_helper import get_winrm_result
-    result = {'status': False, 'note': ''}
-    exception_message = ''
-    try:
-        command = f"""
-        if (Get-Service {service_name} -ErrorAction SilentlyContinue) {{
-            Restart-Service {service_name} -Force
-            echo $true
-        }} else {{
-            echo $false
-        }}
-        """
-        command_result = get_winrm_result(host_name, command, is_ntlm=is_ntlm)
-        if command_result.strip().lower() == "true":
-            result['status'] = True
-            result['note'] = f"Restarted {service_name} service"
-        else:
-            result['status'] = False
-            result['note'] = f"{service_name} service not found"
-    except Exception as exception:
-        print(exception)
-        exception_message = str(exception)
-    if exception_message:
-        result['exception'] = exception_message
-    return result
 
 def kill_process(host_name, process_name, is_ntlm=True):
 
