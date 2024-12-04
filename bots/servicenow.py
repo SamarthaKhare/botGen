@@ -39,22 +39,24 @@ def get_api_response(attributes):
     return response, response_code
 
 # Function to update the status of an incident
-def update_incident(sys_id,data):
+def update_incident(incident,data):
     response = None
     payload={}
-    for key in data:
-        payload[key]=data[key]
-    if 'state' in payload and payload['state']=='6':
-        payload['close_code']='Solution Provided'
-    try:
-        url = f"/api/now/v2/table/incident/{sys_id}"
-        attributes = {"type": "PATCH", "url": url, "payload": payload}
-        result, response_code = get_api_response(attributes)
-        if response_code == 200:
-            response = "SUCCESS"
-        else:
-            response = result
-    except Exception as exception:
-        error_message = f"Error updating status: {exception}"
-        print(error_message)
+    sys_id=incident.get(sys_id,None)
+    if sys_id:
+        for key in data:
+            payload[key]=data[key]
+        if 'state' in payload and payload['state']=='6':
+            payload['close_code']='Solution Provided'
+        try:
+            url = f"/api/now/v2/table/incident/{sys_id}"
+            attributes = {"type": "PATCH", "url": url, "payload": payload}
+            result, response_code = get_api_response(attributes)
+            if response_code == 200:
+                response = "SUCCESS"
+        except Exception as exception:
+            error_message = f"Error updating status: {exception}"
+            print(error_message)
+    else:
+        print("sys id missing")
     return response
