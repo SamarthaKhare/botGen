@@ -160,10 +160,14 @@ def get_incident_payload(status,incident,workflow_name,process_result=None):
     """
     This function prepares the payload to update the incident using status and further formats payload with process_result,device name and other relvant parameters.
     Arguments:
-    status: the status for which we will update the incident it can be 'RESOLVED','RUNNING','RESTART','ESCALATE' or 'ESCALATE_DEVICE_UNREACHABLE'
+    status: the status for which we will update the incident it can be 'RESOLVED','RUNNING','RESTART','ESCALATE' 
     workflow_name: name of workflow it is used to get payload from config file
     process_result: result of process with which incident is updated, like it can contain list of top resource using process or ping result etc. Defaults to None 
     Return:(dict) the payload for the provided workflow and status
+    eg:for service related workflow status is-:
+    status=RUNNING when service state was running 
+    status=RESTART when service state was successfully restarted from stopped state
+    status=RESTART_FAILURE when restarting service failed
     """
     payload=None
     try:
