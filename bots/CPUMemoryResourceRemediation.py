@@ -1,93 +1,7 @@
 
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
-from servicenow import update_incident
+from utility_helper import device_unreachable_status
 from mongo_config import MONGO_CONFIG  # Import the MONGO_CONFIG
-workflow_name = 'CPUMemoryResourceRemediation'
-
-def get_result_table(result,is_linux):
-    """
-    """
-    table_result = None
-    td_string ="<td style='font-family: calibri, tahoma, verdana; color: black; height: 10px;'>"
-    count = 0
-    try:
-        if is_linux:
-            processes = [[item for item in row.values()] for row in result]
-            table_result = ""
-            for process in processes:
-                table_result += "<tr>" + td_string
-                count += 1
-                process.insert(0, str(count))
-                table_result += ("</td>" + td_string).join(process)
-                table_result += "</td></tr>"
-        else:
-            table_result = ""
-            for process in result:
-                table_result += "<tr>" + td_string
-                count += 1
-                process_format = str(count) + "|||"+process
-                table_result += ("</td>" + td_string).join(process_format.split('|||'))
-                table_result += "</td></tr>"
-    except Exception as exception:
-        print(exception)
-    return table_result
-
-def update_incident_status(status,incident,payload,process=None,process_result=None):
-    """
-    """
-    resolver = None
-    try:
-        print("updating status")
-        print(f"Current payload is : {payload}")
-
-        if status not in ["WIP", "RESOLVED"]:
-            payload["assignment_group"] = incident.get('resolver_id', None)
-            resolver = incident.get('resolver', None)
-        if "close_notes" in payload:
-            payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident['alert_type'])
-        if "work_notes" in payload:
-            if  process_result is not None:
-                process_result = process_result.replace("\r\n", "")
-            else:
-                process_result = ""
-            payload["work_notes"] = payload["work_notes"].format(
-                                DEVICE_NAME=incident.get("device_name", None),
-                                ALERT_TYPE=incident.get("alert_type", None),
-                                THRESHOLD_VALUE=incident.get("threshold_value", None),
-                                TOTAL_USAGE=incident.get('total_usage',None),
-                                FAILURE_TYPE= incident.get('failureType',None),
-                                RESOLVER = resolver,
-                                PROCESS_RESULT  = process_result
-                                )      
-        print(f"updating incident for {status}")
-        print(update_incident(incident['sys_id'],payload))
-    except Exception as exception:
-        print(exception)
-
-def update_status(status,device_config,process=None,process_result=None):
-    """
-    for-CPUMemoryResourceRemediation it updates and resolves the incident and using the approriate resolution notes. 
-    Arguments:
-    -status(str): status='RESOLVED' in case we are resolving the incident when actual resource is less than the provided threshold else status='ESCALATE_RESOURCE_HIGH_USAGE'
-    - device_config (dict): A dictionary containing device configuration details.
-    -process- (Only for escalation) the top resource utilization processes for the .Defaults to None
-    -process_result: (Only for escalation) tabular result of top utilization process.Defaults to None
-    Returns:- None
-    """
-    try:
-        cpu_config = MONGO_CONFIG['CPUMemoryResourceRemediation']
-        if status in cpu_config:
-            incident_payload = cpu_config[status]['INCIDENT_PAYLOAD']
-            if process_result is not None:
-                update_incident_status(status,device_config,incident_payload,process, process_result)  
-            else:
-                update_incident_status(status,device_config,incident_payload)
-        else:
-            print(f"{status} is empty")
-    except Exception as exception:
-        print(exception)
-
-
 
 def get_actual_threshold(device_config):
     """
@@ -124,14 +38,13 @@ def get_actual_threshold(device_config):
                 print(f'actual thresold is {actual_threshold}')
             else:
                 print("Threshold empty")
-                device_config['failureType'] = "SSH Failure"
-                device_config['result_time'] = 3
-                update_status('ESCALATE_DEVICE_UNREACHABLE',device_config)
+                device_unreachable_status(device_config,"SSH Failure","CPUMemoryResourceRemediation")
         else:
             print("Device Config is None")
         return actual_threshold
     except Exception as exception:
         print(exception)
+
 
 def get_top_utilization_process(device_config):
     """
@@ -159,27 +72,3 @@ def get_top_utilization_process(device_config):
         print("Alert type is unknown")
     return top_process
     
-    
-def escalate_with_top_process(device_config,top_process):
-    """
-    Only if user wants the top utilization process this function updates and resolves the incident with the top resource consuming process.
-    Arguments:
-    - device_config (dict): A dictionary containing device configuration details, such as device name, 
-    alert type, and is_linux(flag for linux based devices).
-    -top_process- the top resource-consuming processes for the device
-    Returns:None
-    """
-    try:
-        result=None
-        if device_config['is_linux']:
-            result = get_result_table(top_process,True)
-        else:        
-            if top_process is not None:
-                top_process = top_process.split('~~~')[:-1]
-                result = get_result_table(top_process,False)
-        if result is not None:
-            update_status('ESCALATE_RESOURCE_HIGH_USAGE',device_config,process=top_process,process_result=result)
-        else:
-            print("Can not find the top process")
-    except Exception as exception:
-        print(exception)
