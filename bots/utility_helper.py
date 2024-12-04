@@ -16,31 +16,35 @@ from mongo_config import MONGO_CONFIG
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 authentication = HTTPBasicAuth(os.getenv('SN_USERNAME'), os.getenv('SN_PASSWORD'))
 
-def remove_spaces(value):
-    """
-    Recursively removes leading and trailing spaces from a given value, which can be a string, list, or dictionary.
-    Args:
-        value: The value to remove spaces from. This can be:
-               - str: A string where leading and trailing spaces will be removed.
-               - list: A list where each element will have spaces removed recursively.
-               - dict: A dictionary where keys and values will have spaces removed recursively.
-    Returns:
-        The value with spaces removed. If the value is a string, leading and trailing spaces are removed.
-        If the value is a list or dictionary, spaces are removed recursively from each element.
-        If the value is not a string, list, or dictionary, it is returned unchanged.
-    """
-    if isinstance(value, str):
-        return value.strip()
-    elif isinstance(value, list):
-        return [remove_spaces(item) for item in value]
-    elif isinstance(value, dict):
-        return {key: remove_spaces(val) for key, val in value.items()}
-    else:
-        return value
+
+def get_result_table(result,is_linux):
+    table_result = None
+    td_string ="<td style='font-family: calibri, tahoma, verdana; color: black; height: 10px;'>"
+    count = 0
+    try:
+        if is_linux:
+            processes = [[item for item in row.values()] for row in result]
+            table_result = ""
+            for process in processes:
+                table_result += "<tr>" + td_string
+                count += 1
+                process.insert(0, str(count))
+                table_result += ("</td>" + td_string).join(process)
+                table_result += "</td></tr>"
+        else:
+            table_result = ""
+            for process in result:
+                table_result += "<tr>" + td_string
+                count += 1
+                process_format = str(count) + "|||"+process
+                table_result += ("</td>" + td_string).join(process_format.split('|||'))
+                table_result += "</td></tr>"
+    except Exception as exception:
+        print(exception)
+    return table_result
+
 
 def get_workflow_payload(incident):
-    """
-    """
     #search pattern
     pattern = r"(\w+(?: \w+)*):\s*([^\n:]+)"
     # Find all matches
@@ -63,7 +67,7 @@ def get_workflow_payload(incident):
 
 def search_incident(filter_query):
 	"""
-      	    filter out the service now incident and returns a list of incident which matches the provided filer  
+    filter out the service now incident and returns a list of incident which matches the provided filer  
  	"""
 	result = None
 	try:
@@ -79,8 +83,6 @@ def search_incident(filter_query):
 	return result
 
 def work_in_progress(device_config,workflow_name):
-    """
-    """
     try:
         config = MONGO_CONFIG[workflow_name]
         if config is not None and 'WIP' in config:
@@ -92,9 +94,8 @@ def work_in_progress(device_config,workflow_name):
         return False
         print(exception)
 
+
 def is_device_reachable(device_config,workflow_name):
-    """
-    """
     status = None
     try: 
         if device_config is not None: 
@@ -129,25 +130,66 @@ def is_device_reachable(device_config,workflow_name):
     except Exception as exception:
         print(exception)
 
+
 def device_unreachable_status(device_config,failureStatus,workflow_name):
-    """
-    """
     try:
         config = MONGO_CONFIG[workflow_name]        
         if all([device_config,failureStatus,config]) and 'ESCALATE_DEVICE_UNREACHABLE' in config:
-            sys_id = device_config['sys_id']
-            device_name = device_config['device_name']
-            incident_payload = config['ESCALATE_DEVICE_UNREACHABLE']['INCIDENT_PAYLOAD']
-            if workflow_name=="PingResponseRemediation":
-                ping_result=get_ping_output(device_name)
-                incident_payload["work_notes"] = incident_payload["work_notes"].format(
-                                        DEVICE_NAME=device_name,
-                                        SERVICE_NAME=device_config.get('service_name',None),
-                                        PING_RESULT=ping_result,
-                                        FAILURE_TYPE=failureStatus)
+            sys_id = device_config.get('sys_id',None)
+            if sys_id:
+                device_name = device_config.get('device_name',None)
+                if device_name:
+                    incident_payload = config['ESCALATE_DEVICE_UNREACHABLE']['INCIDENT_PAYLOAD']
+                    incident_payload["work_notes"] = incident_payload["work_notes"].format(
+                                            DEVICE_NAME=device_config.get('_name',None),
+                                            SERVICE_NAME=device_config.get('service_name',None),
+                                            FAILURE_TYPE=failureStatus)
+                    response = update_incident(sys_id,incident_payload)
+                    print('response is',response)
+                else:
+                    print("Device name is missing")
             else:
-                incident_payload['work_notes'] = incident_payload['work_notes'].format(DEVICE_NAME=device_name,FAILURE_TYPE=failureStatus)
-            response = update_incident(sys_id,incident_payload)
-            print('response is',response)
+                print("Sys id is missing")
+            
     except Exception as exception:
         print(exception)
+
+
+def get_incident_payload(status,incident,workflow_name,process_result=None):
+
+    """
+    This function prepares the payload to update the incident using status and further formats payload with process_result,device name and other relvant parameters.
+    Arguments:
+    status: the status for which we will update the incident it can be 'RESOLVED','RUNNING','RESTART','ESCALATE' or 'ESCALATE_DEVICE_UNREACHABLE'
+    workflow_name: name of workflow it is used to get payload from config file
+    process_result: result of process with which incident is updated, like it can contain list of top resource using process or ping result etc. Defaults to None 
+    Return:(dict) the payload for the provided workflow and status
+    """
+    payload=None
+    try:
+        config = MONGO_CONFIG[workflow_name]
+        if status in config:
+            payload = config[status]['INCIDENT_PAYLOAD']
+            if "close_notes" in payload:
+                payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident.get("alert_type", None),DEVICE_NAME=incident.get("device_name", None),SERVICE_NAME=incident.get('service_name',None))
+            if "work_notes" in payload:
+                if  process_result is not None:
+                    process_result=get_result_table(process_result,incident.get('is_linux'))
+                else:
+                    process_result = ""
+                payload["work_notes"] = payload["work_notes"].format(
+                                    DEVICE_NAME=incident.get("device_name", None),
+                                    ALERT_TYPE=incident.get("alert_type", None),
+                                    THRESHOLD_VALUE=incident.get("threshold_value", None),
+                                    TOTAL_USAGE=incident.get('total_usage',None),
+                                    FAILURE_TYPE= incident.get('failureType',None),
+                                    RESOLVER = incident.get('resolver', None),
+                                    SERVICE_NAME=incident.get('service_name',None),
+                                    PROCESS_RESULT= process_result
+                                    )           
+        else:
+            print(f"{status} is empty")
+    except Exception as exception:
+        print(exception)
+    return payload
+
