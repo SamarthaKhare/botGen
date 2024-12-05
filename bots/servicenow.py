@@ -60,3 +60,20 @@ def update_incident(incident,data):
     else:
         print("sys id missing")
     return response
+
+def create_incident(payload):
+    response = None
+    try:
+        url = "/api/now/table/incident"
+        attributes = {"type": "POST", "url": url, "payload": payload}
+        result, response_code = get_api_response(attributes)
+        if result is not None and response_code == 201:
+            sys_id = result['result']['sys_id']
+            response = sys_id
+        else:
+            response = result
+    except Exception as exception:
+        error_message = f"Error creating incident: {exception}"
+        print(error_message)
+        response = {"error": error_message}
+    return response
