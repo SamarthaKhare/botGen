@@ -188,7 +188,7 @@ def update_all_documents(collection_name, query, new_values):
     return result
 
 
-def upsert_single_document(collection_name='remediate_alerts', query, new_values):
+def upsert_single_document(query,new_values,collection_name='remediate_alerts'):
     """
     Updates a single document if it exists, or inserts a new document if it does not (upsert) in a MongoDB collection.
     Args:
