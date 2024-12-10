@@ -1,9 +1,10 @@
 import pymongo
 import json
 import os
-mongo_client = pymongo.MongoClient(os.environ["MONGO_DB_URL"])
-mongo_session = mongo_client[os.environ["ZIF_DB"]]
-
+from dotenv import load_dotenv
+dir=os.path.dirname(os.path.abspath(__file__))
+dotenv_path = f"{dir}/../../.env"
+load_dotenv(dotenv_path=dotenv_path)
 
 def get_connection():
     """
@@ -16,18 +17,23 @@ def get_connection():
     Raises:
         Exception: If an error occurs while connecting to MongoDB, the exception will be caught and printed.
     """
-    mongo_connection = None
+
     try:
+        """
+        MONGO_DB_URL=mongodb://zifwuser:zifwuser@172.27.130.5:27017,172.27.130.6:27017,172.27.130.7:27017/?authSource=admin&replicaSet=zif-rs&readPreference=secondaryPreferred&ssl=false
+        ZIF_DB=zif
+        """
         data_source = os.environ["MONGO_DB_URL"]
         database = os.environ["ZIF_DB"]
         mongo_client = pymongo.MongoClient(data_source)
         mongo_session = mongo_client[database]
+        #print(mongo_session)
         if mongo_session is not None:
-            mongo_connection = mongo_session
+            return mongo_session
     except Exception as exception:
         print(exception)
 
-    return mongo_connection
+    return mongo_session
 
 
 def get_collection(collection_name):
@@ -41,7 +47,9 @@ def get_collection(collection_name):
     mongo_collection = None
     try:
         mongo_connection = get_connection()
-        if all([mongo_connection, collection_name]):
+        #print(mongo_connection)
+        #print(collection_name)
+        if collection_name:
             mongo_collection = mongo_connection[collection_name]
     except Exception as exception:
         print(exception)
@@ -63,7 +71,7 @@ def get_single_document(collection_name, query, projection=None):
     mongo_document = None
     try:
         mongo_collection = get_collection(collection_name)
-        if all([mongo_collection, collection_name, query]):
+        if collection_name and query:
             if projection is not None:
                 mongo_document = mongo_collection.find_one(query, projection)
             else:
@@ -74,25 +82,24 @@ def get_single_document(collection_name, query, projection=None):
     return mongo_document
 
 
-def get_all_documents(collection_name, query, projection=None):
+def get_all_documents(query,collection_name='remediate_alerts',projection=None):
     """
     Retrieves all documents from a specified MongoDB collection based on a query.
     Args:
-        collection_name (str): The name of the MongoDB collection to query.
         query (dict): A MongoDB query to filter documents.
         projection (dict, optional): A projection to specify which fields to include or exclude. Defaults to None.
     Returns:mongo_documents (list or None): A list of documents that match the query, or None if no matches are found.
-    Raises:
-        Exception: If an error occurs while querying the documents, the exception will be caught and printed.
     """
     mongo_documents = None
     try:
         mongo_collection = get_collection(collection_name)
-        if all([mongo_collection, collection_name, query]):
+        #print(mongo_collection)
+        if collection_name and query:
             if projection is not None:
                 mongo_documents = list(
                     mongo_collection.find(query, projection))
             else:
+                #print(query)
                 mongo_documents = list(mongo_collection.find(query))
 
             if mongo_documents is None or len(mongo_documents) == 0:
@@ -163,8 +170,7 @@ def update_all_documents(collection_name, query, new_values):
         query (dict): The filter used to select the documents to update.
         new_values (dict): The new values to update the documents with.
     Returns:result (bool): True if any documents were successfully updated, otherwise False.
-    Raises:
-        Exception: If an error occurs while updating the documents, the exception will be caught and printed.
+    e.g it uses the set command to upsert newvalues 
     """
     result = False
     mongo_document = None
@@ -182,26 +188,24 @@ def update_all_documents(collection_name, query, new_values):
     return result
 
 
-def upsert_single_document(collection_name, query, new_values):
+def upsert_single_document(collection_name='remediate_alerts', query, new_values):
     """
     Updates a single document if it exists, or inserts a new document if it does not (upsert) in a MongoDB collection.
     Args:
-        collection_name (str): The name of the MongoDB collection where the document exists.
         query (dict): The filter used to select the document to update or insert.
         new_values (dict): The new values to update the document with.
     Returns:result (bool): True if the document was successfully upserted, otherwise False.
-    Raises:
-        Exception: If an error occurs while performing the upsert, the exception will be caught and printed.
+    e.g it uses $set command to set new values in the document like {'$set': new_values}
     """
     result = False
     mongo_document = None
     try:
         mongo_collection = get_collection(collection_name)
-        if all([mongo_collection, query, new_values]):
+        print(mongo_collection)
+        if all([ query, new_values]):
             set_values = {'$set': new_values}
-            mongo_document = mongo_collection.update_one(
-                query, set_values, upsert=True)
-
+            print(set_values)  
+            mongo_document = mongo_collection.update_one(query, set_values, upsert=True)
         if mongo_document is not None and mongo_document.modified_count > 0:
             result = True
     except Exception as exception:
@@ -218,8 +222,7 @@ def upsert_all_documents(collection_name, query, new_values):
         query (dict): The filter used to select the documents to update or insert.
         new_values (dict): The new values to update the documents with.
     Returns:result (bool): True if the documents were successfully upserted, otherwise False.
-    Raises:
-        Exception: If an error occurs while performing the upsert, the exception will be caught and printed.
+    e.g it uses $set command to set new values in the document like {'$set': new_values}
     """
     result = False
     mongo_document = None
