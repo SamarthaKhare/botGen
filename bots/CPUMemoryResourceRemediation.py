@@ -18,9 +18,9 @@ def get_actual_threshold(device_config):
     try:
         actual_threshold = None
         if device_config:
-            alert_type = device_config["alert_type"]
-            is_linux = device_config['is_linux']
-            device_name = device_config["device_name"]
+            alert_type = device_config["alertType"]
+            is_linux = device_config['isLinux']
+            device_name = device_config["hostName"]
             retry_count=3
             if alert_type == 'CPU':
                 if is_linux:
@@ -56,18 +56,18 @@ def get_top_utilization_process(device_config):
     Return: Top resource consuming process on the device
     """
     top_process=None
-    if device_config["alert_type"] == 'CPU':
-        if device_config['is_linux']:
+    if device_config["alertType"] == 'CPU':
+        if device_config['isLinux']:
             print("linux case")
-            top_process = get_top_cpu_consuming_process(device_config['device_name'])
+            top_process = get_top_cpu_consuming_process(device_config['hostName'])
         else:
-            top_process = get_top_cpu_process(device_config["device_name"])
-    elif device_config["alert_type"] == 'MEMORY':
-        if device_config['is_linux']:
+            top_process = get_top_cpu_process(device_config["hostName"])
+    elif device_config["alertType"] == 'MEMORY':
+        if device_config['isLinux']:
             print('linux case')
-            top_process = get_top_memory_consuming_process(device_config['device_name'])
+            top_process = get_top_memory_consuming_process(device_config['hostName'])
         else:
-            top_process = get_top_memory_process(device_config["device_name"])
+            top_process = get_top_memory_process(device_config["hostName"])
     else:
         print("Alert type is unknown")
     return top_process
