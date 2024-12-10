@@ -65,10 +65,20 @@ def create_incident(payload):
     response = None
     try:
         url = "/api/now/table/incident"
-        attributes = {"type": "POST", "url": url, "payload": payload}
+        short_des=payload['alertDescription']
+        del payload['alertDescription']
+        payload['alertDateTime']=payload['alertDateTime'].strftime('%Y-%m-%d %H:%M:%S')
+        data={
+            'description':payload,
+            'short_description':short_des,
+            'impact':'1',
+            'urgency':'1'
+        }
+        attributes = {"type": "POST", "url": url, "payload": data}
         result, response_code = get_api_response(attributes)
         if result is not None and response_code == 201:
             sys_id = result['result']['sys_id']
+            print(result['result']['number'])
             response = sys_id
         else:
             response = result
@@ -76,4 +86,22 @@ def create_incident(payload):
         error_message = f"Error creating incident: {exception}"
         print(error_message)
         response = {"error": error_message}
+    return response
+
+def check_incident_status(sys_id):
+    response = None
+    try:
+        url = f"/api/now/v2/table/incident/{sys_id}"
+        attributes = {"type": "GET", "url": url,'payload':None}
+        result, response_code = get_api_response(attributes)
+        if response_code == 200:
+            response = result['result']['state']
+            if(response=='1'):
+                response='open'
+            print(response)
+        else:
+            response = 'Faliure'
+    except Exception as exception:
+        error_message = f"Error updating status: {exception}"
+        print(error_message)
     return response
