@@ -94,7 +94,6 @@ def work_in_progress(device_config,workflow_name):
         return False
         print(exception)
 
-
 def is_device_reachable(device_config,workflow_name):
     status = None
     try: 
@@ -102,16 +101,16 @@ def is_device_reachable(device_config,workflow_name):
             retry_count = 3
             if retry_count is None:
                 retry_count = 3
-            if is_ping_success(device_config['device_name'],retry_count):
-                if device_config['is_linux']:
-                    if get_ssh_reachable_status(device_config['device_name'])=="Success":
+            if is_ping_success(device_config['hostName'],retry_count):
+                if device_config['isLinux']:
+                    if get_ssh_reachable_status(device_config['hostName'])=="Success":
                         status = "Success"
                         print("SSH Success")
                     else:
                         status = "SSH Failure"
                         print("SSH Failure")
                 else:
-                    if get_winrm_connection_status(device_config['device_name']) == 'Success':
+                    if get_winrm_connection_status(device_config['hostName']) == 'Success':
                         status = "Success"
                         print(status)
                     else:
@@ -137,19 +136,19 @@ def device_unreachable_status(device_config,failureStatus,workflow_name):
         if all([device_config,failureStatus,config]) and 'ESCALATE_DEVICE_UNREACHABLE' in config:
             sys_id = device_config.get('sys_id',None)
             if sys_id:
-                device_name = device_config.get('device_name',None)
+                device_name = device_config.get('hostName',None)
                 if device_name:
                     incident_payload = config['ESCALATE_DEVICE_UNREACHABLE']['INCIDENT_PAYLOAD']
                     incident_payload["work_notes"] = incident_payload["work_notes"].format(
-                                            DEVICE_NAME=device_config.get('_name',None),
-                                            SERVICE_NAME=device_config.get('service_name',None),
+                                            DEVICE_NAME=device_config.get('hostName',None),
+                                            SERVICE_NAME=device_config.get('serviceName',None),
                                             FAILURE_TYPE=failureStatus)
                     response = update_incident(sys_id,incident_payload)
                     print('response is',response)
                 else:
                     print("Device name is missing")
             else:
-                print("Sys id is missing")
+                print("Device is not reachable")
             
     except Exception as exception:
         print(exception)
@@ -175,20 +174,20 @@ def get_incident_payload(status,incident,workflow_name,process_result=None):
         if status in config:
             payload = config[status]['INCIDENT_PAYLOAD']
             if "close_notes" in payload:
-                payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident.get("alert_type", None),DEVICE_NAME=incident.get("device_name", None),SERVICE_NAME=incident.get('service_name',None))
+                payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident.get("alertType", None),DEVICE_NAME=incident.get("hostName", None),SERVICE_NAME=incident.get('serviceName',None))
             if "work_notes" in payload:
                 if  process_result is not None:
-                    process_result=get_result_table(process_result,incident.get('is_linux'))
+                    process_result=get_result_table(process_result,incident.get('isLinux'))
                 else:
                     process_result = ""
                 payload["work_notes"] = payload["work_notes"].format(
-                                    DEVICE_NAME=incident.get("device_name", None),
-                                    ALERT_TYPE=incident.get("alert_type", None),
-                                    THRESHOLD_VALUE=incident.get("threshold_value", None),
-                                    TOTAL_USAGE=incident.get('total_usage',None),
+                                    DEVICE_NAME=incident.get("hostName", None),
+                                    ALERT_TYPE=incident.get("alertType", None),
+                                    THRESHOLD_VALUE=incident.get("thresholdValue", None),
+                                    TOTAL_USAGE=incident.get('totalUsage',None),
                                     FAILURE_TYPE= incident.get('failureType',None),
                                     RESOLVER = incident.get('resolver', None),
-                                    SERVICE_NAME=incident.get('service_name',None),
+                                    SERVICE_NAME=incident.get('serviceName',None),
                                     PROCESS_RESULT= process_result
                                     )           
         else:
