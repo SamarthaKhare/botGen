@@ -195,7 +195,7 @@ def upsert_single_document(query,new_values,collection_name='remediate_alerts'):
         query (dict): The filter used to select the document to update or insert.
         new_values (dict): The new values to update the document with.
     Returns:result (bool): True if the document was successfully upserted, otherwise False.
-    e.g it uses $set command to set new values in the document like {'$set': new_values}
+    e.g it uses $set command to upsert the new values in the document like {'$set': new_values}
     """
     result = False
     mongo_document = None
