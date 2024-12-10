@@ -201,7 +201,6 @@ def upsert_single_document(collection_name='remediate_alerts', query, new_values
     mongo_document = None
     try:
         mongo_collection = get_collection(collection_name)
-        print(mongo_collection)
         if all([ query, new_values]):
             set_values = {'$set': new_values}
             print(set_values)  
