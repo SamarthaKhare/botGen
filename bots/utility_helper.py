@@ -94,7 +94,7 @@ def work_in_progress(device_config,workflow_name):
         return False
         print(exception)
 
-def is_device_reachable(device_config,workflow_name):
+def is_device_reachable(device_config):
     status = None
     try: 
         if device_config is not None: 
@@ -124,8 +124,8 @@ def is_device_reachable(device_config,workflow_name):
         if status == "Success":
             return "Success"
         else:
-            device_unreachable_status(device_config,status,workflow_name)
-            return status
+            print('Device unreachable')
+            return 'Failure'
     except Exception as exception:
         print(exception)
 
