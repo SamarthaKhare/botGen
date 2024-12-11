@@ -42,7 +42,7 @@ def get_api_response(attributes):
 def update_incident(incident,data):
     response = None
     payload={}
-    sys_id=incident.get(sys_id,None)
+    sys_id=incident.get('incidentId',None)
     if sys_id:
         for key in data:
             payload[key]=data[key]
@@ -61,13 +61,17 @@ def update_incident(incident,data):
         print("sys id missing")
     return response
 
-def create_incident(payload):
+def create_incident(fpayload):
     response = None
     try:
         url = "/api/now/table/incident"
+        payload=fpayload.copy()
         short_des=payload['alertDescription']
         del payload['alertDescription']
+        del payload['_id']
         payload['alertDateTime']=payload['alertDateTime'].strftime('%Y-%m-%d %H:%M:%S')
+        #print('i am here')
+        #print(payload)
         data={
             'description':payload,
             'short_description':short_des,
@@ -78,7 +82,8 @@ def create_incident(payload):
         result, response_code = get_api_response(attributes)
         if result is not None and response_code == 201:
             sys_id = result['result']['sys_id']
-            print(result['result']['number'])
+            print(f"Incident number : {result['result']['number']}")
+            print(f"Sys_id is {sys_id}")
             response = sys_id
         else:
             response = result
