@@ -99,9 +99,8 @@ def get_all_documents(query,collection_name='remediate_alerts',projection=None):
                 mongo_documents = list(
                     mongo_collection.find(query, projection))
             else:
-                #print(query)
                 mongo_documents = list(mongo_collection.find(query))
-
+                print(mongo_documents)
             if mongo_documents is None or len(mongo_documents) == 0:
                 mongo_documents = None
     except Exception as exception:
@@ -203,7 +202,7 @@ def upsert_single_document(query,new_values,collection_name='remediate_alerts'):
         mongo_collection = get_collection(collection_name)
         if all([ query, new_values]):
             set_values = {'$set': new_values}
-            print(set_values)  
+            #print(set_values)  
             mongo_document = mongo_collection.update_one(query, set_values, upsert=True)
         if mongo_document is not None and mongo_document.modified_count > 0:
             result = True
@@ -288,3 +287,5 @@ def get_value_by_field_name(collection_name, primary_key_field_name, field_value
         print(exception)
 
     return result
+
+print(get_all_documents({'alertStatus': 'New', 'alertSeverity': 'Critical', 'alertType': 'CPU'}))
