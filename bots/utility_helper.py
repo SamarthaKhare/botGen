@@ -154,7 +154,7 @@ def device_unreachable_status(device_config,failureStatus,workflow_name):
         print(exception)
 
 
-def get_incident_payload(status,incident,workflow_name,process_result=None):
+def get_incident_payload(status,incident,workflow_name,actual_threshold,process_result=None):
 
     """
     This function prepares the payload to update the incident using status and further formats payload with process_result,device name and other relvant parameters.
@@ -162,6 +162,7 @@ def get_incident_payload(status,incident,workflow_name,process_result=None):
     status: the status for which we will update the incident it can be 'RESOLVED','RUNNING','RESTART','ESCALATE' 
     incident: the alert config of ticket for which we need the payload
     workflow_name: name of workflow it is used to get payload from config file
+    actual_threshold: the actual CPU/MEMORY utilization of device 
     process_result: result of process with which incident is updated, like it can contain list of top resource using process or ping result etc. Defaults to None 
     Return:(dict) the payload for the provided workflow and status
     eg:for service related workflow status is-:
@@ -185,7 +186,7 @@ def get_incident_payload(status,incident,workflow_name,process_result=None):
                                     DEVICE_NAME=incident.get("hostName", None),
                                     ALERT_TYPE=incident.get("alertType", None),
                                     THRESHOLD_VALUE=incident.get("thresholdValue", None),
-                                    TOTAL_USAGE=incident.get('totalUsage',None),
+                                    TOTAL_USAGE=incident.get('actual_threshold',None),
                                     FAILURE_TYPE= incident.get('failureType',None),
                                     RESOLVER = incident.get('resolver', None),
                                     SERVICE_NAME=incident.get('serviceName',None),
@@ -196,4 +197,3 @@ def get_incident_payload(status,incident,workflow_name,process_result=None):
     except Exception as exception:
         print(exception)
     return payload
-
