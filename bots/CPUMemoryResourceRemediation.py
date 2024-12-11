@@ -71,4 +71,3 @@ def get_top_utilization_process(device_config):
     else:
         print("Alert type is unknown")
     return top_process
-    
