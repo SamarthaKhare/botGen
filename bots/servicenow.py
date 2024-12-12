@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 dir=os.path.dirname(os.path.abspath(__file__))
 dotenv_path = f"{dir}/../../.env"
 load_dotenv(dotenv_path=dotenv_path)
-
+from zif_mongo_helper import get_single_document
+query={"tenantId": "6735248edb0aefa5f65131b0", "key": "CPUMemoryResourceRemediation"}
 host = f"https://{os.getenv('SN_INSTANCE')}.service-now.com"
-print(host)
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 authentication = HTTPBasicAuth(os.getenv('SN_USERNAME'), os.getenv('SN_PASSWORD'))
 
@@ -42,7 +42,7 @@ def get_api_response(attributes):
 def update_incident(incident,data):
     response = None
     payload={}
-    sys_id=incident.get('incidentId',None)
+    sys_id=incident.get('sysId',None)
     if sys_id:
         for key in data:
             payload[key]=data[key]
@@ -66,15 +66,13 @@ def create_incident(fpayload):
     try:
         url = "/api/now/table/incident"
         payload=fpayload.copy()
-        short_des=payload['alertDescription']
         del payload['alertDescription']
         del payload['_id']
         payload['alertDateTime']=payload['alertDateTime'].strftime('%Y-%m-%d %H:%M:%S')
-        #print('i am here')
-        #print(payload)
+        mongodoc=get_single_document(query)
         data={
-            'description':payload,
-            'short_description':short_des,
+            'description':mongodoc['description'],
+            'short_description':mongodoc['shortDescription'],
             'impact':'1',
             'urgency':'1'
         }
