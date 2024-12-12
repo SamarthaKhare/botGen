@@ -34,7 +34,7 @@ def get_actual_threshold(device_config):
             if actual_threshold is not None:
                 actual_threshold = actual_threshold.encode().decode().strip()
                 device_config['total_usage']=actual_threshold
-                print(f'actual thresold is {actual_threshold}')
+                print(f'The actual thresold for the {alert_type} on {device_name} is {actual_threshold}')
             else:
                 print("Threshold empty")
                 device_unreachable_status(device_config,"SSH Failure","CPUMemoryResourceRemediation")
@@ -70,4 +70,3 @@ def get_top_utilization_process(device_config):
     else:
         print("Alert type is unknown")
     return top_process
-    
