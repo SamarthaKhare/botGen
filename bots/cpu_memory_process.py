@@ -19,7 +19,7 @@ Get-Counter '\Process(*)\ID Process','\Process(*)\% Processor Time' -ErrorAction
       } | Sort-Object CPUCooked -Descending |
       Select-Object -First 5 |
       ForEach-Object {
-        "{0}|||{1}|||{2} ~~~" -f $_.ProcessId, $_.ProcessName, '{0:P}' -f ($_.CPUCooked / 100 / $env:NUMBER_OF_PROCESSORS)
+        "{0}|||{1}|||{2}" -f $_.ProcessId, $_.ProcessName, '{0:P}' -f ($_.CPUCooked / 100 / $env:NUMBER_OF_PROCESSORS)
       }
   }
 """
