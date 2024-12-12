@@ -4,7 +4,7 @@ def get_top_cpu_process(host_name,is_ntlm=True):
         result = None
         try:
                 if host_name is not None:
-                        command = """
+                        command = r"""
 Get-Counter '\Process(*)\ID Process','\Process(*)\% Processor Time' -ErrorAction SilentlyContinue |
   ForEach-Object {
     $_.CounterSamples |
@@ -57,7 +57,7 @@ def get_top_memory_process(host_name,is_ntlm=True):
     result = None
     try:
         if host_name is not None:
-            command = """
+            command = r"""
 $TotalMemory = Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object -ExpandProperty TotalPhysicalMemory
 Get-Counter '\Process(*)\ID Process','\Process(*)\Working Set - Private' -ErrorAction SilentlyContinue |
 ForEach-Object {
