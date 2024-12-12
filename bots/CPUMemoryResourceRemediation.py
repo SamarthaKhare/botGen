@@ -1,7 +1,6 @@
 
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
 from utility_helper import device_unreachable_status
-from mongo_config import MONGO_CONFIG  # Import the MONGO_CONFIG
 
 def get_actual_threshold(device_config):
     """
@@ -71,3 +70,4 @@ def get_top_utilization_process(device_config):
     else:
         print("Alert type is unknown")
     return top_process
+    
