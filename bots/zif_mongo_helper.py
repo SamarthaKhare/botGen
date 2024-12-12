@@ -57,7 +57,7 @@ def get_collection(collection_name):
     return mongo_collection
 
 
-def get_single_document(collection_name, query, projection=None):
+def get_single_document(query,collection_name='automation_airflow_config',projection=None):
     """
     Retrieves a single document from a specified MongoDB collection based on a query.
     Args:
@@ -78,7 +78,6 @@ def get_single_document(collection_name, query, projection=None):
                 mongo_document = mongo_collection.find_one(query)
     except Exception as exception:
         print(exception)
-
     return mongo_document
 
 
@@ -100,7 +99,6 @@ def get_all_documents(query,collection_name='remediate_alerts',projection=None):
                     mongo_collection.find(query, projection))
             else:
                 mongo_documents = list(mongo_collection.find(query))
-                print(mongo_documents)
             if mongo_documents is None or len(mongo_documents) == 0:
                 mongo_documents = None
     except Exception as exception:
