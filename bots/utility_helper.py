@@ -7,12 +7,11 @@ import json
 from remote_connection_helper import is_ping_success,get_winrm_connection_status,get_ssh_reachable_status
 from servicenow import update_incident
 from dotenv import load_dotenv
-from remediation_connection_helper import get_ping_output
+from zif_mongo_helper import get_single_document
 dir=os.path.dirname(os.path.abspath(__file__))
 dotenv_path = f"{dir}/../../.env"
 load_dotenv(dotenv_path=dotenv_path)
-from mongo_config import MONGO_CONFIG 
-
+query={"tenantId": "6735248edb0aefa5f65131b0", "key": "CPUMemoryResourceRemediation"}
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 authentication = HTTPBasicAuth(os.getenv('SN_USERNAME'), os.getenv('SN_PASSWORD'))
 
@@ -84,7 +83,8 @@ def search_incident(filter_query):
 
 def work_in_progress(device_config,workflow_name):
     try:
-        config = MONGO_CONFIG[workflow_name]
+        mongodoc=get_single_document(query)
+        config = mongodoc[workflow_name]
         if config is not None and 'WIP' in config:
             incident_payload = config['WIP']['INCIDENT_PAYLOAD']
             if update_incident(device_config['sys_id'],incident_payload) is not None:
@@ -132,7 +132,8 @@ def is_device_reachable(device_config):
 
 def device_unreachable_status(device_config,failureStatus,workflow_name):
     try:
-        config = MONGO_CONFIG[workflow_name]        
+        mongodoc=get_single_document(query)
+        config = mongodoc[workflow_name]     
         if all([device_config,failureStatus,config]) and 'ESCALATE_DEVICE_UNREACHABLE' in config:
             sys_id = device_config.get('sys_id',None)
             if sys_id:
@@ -154,14 +155,13 @@ def device_unreachable_status(device_config,failureStatus,workflow_name):
         print(exception)
 
 
-def get_incident_payload(status,incident,workflow_name,actual_threshold,process_result=None):
+def get_incident_payload(status,incident,actual_threshold,process_result=None):
 
     """
     This function prepares the payload to update the incident using status and further formats payload with process_result,device name and other relvant parameters.
     Arguments:
     status: the status for which we will update the incident it can be 'RESOLVED','RUNNING','RESTART','ESCALATE' 
     incident: the alert config of ticket for which we need the payload
-    workflow_name: name of workflow it is used to get payload from config file
     actual_threshold: the actual CPU/MEMORY utilization of device 
     process_result: result of process with which incident is updated, like it can contain list of top resource using process or ping result etc. Defaults to None 
     Return:(dict) the payload for the provided workflow and status
@@ -169,24 +169,24 @@ def get_incident_payload(status,incident,workflow_name,actual_threshold,process_
     status=RUNNING when service state was running 
     status=RESTART when service state was successfully restarted from stopped state
     status=RESTART_FAILURE when restarting service failed
+    eg for other workflows its either 'RESOLVED' or 'ESCALATE'
     """
     payload=None
     try:
-        config = MONGO_CONFIG[workflow_name]
+        mongodoc=get_single_document(query)
+        config = mongodoc['value']
         if status in config:
             payload = config[status]['INCIDENT_PAYLOAD']
             if "close_notes" in payload:
                 payload['close_notes'] = payload["close_notes"].format(ALERT_TYPE=incident.get("alertType", None),DEVICE_NAME=incident.get("hostName", None),SERVICE_NAME=incident.get('serviceName',None))
             if "work_notes" in payload:
-                if  process_result is not None:
-                    process_result=get_result_table(process_result,incident.get('isLinux'))
-                else:
+                if  process_result is None:
                     process_result = ""
                 payload["work_notes"] = payload["work_notes"].format(
                                     DEVICE_NAME=incident.get("hostName", None),
                                     ALERT_TYPE=incident.get("alertType", None),
                                     THRESHOLD_VALUE=incident.get("thresholdValue", None),
-                                    TOTAL_USAGE=incident.get('actual_threshold',None),
+                                    TOTAL_USAGE=actual_threshold,
                                     FAILURE_TYPE= incident.get('failureType',None),
                                     RESOLVER = incident.get('resolver', None),
                                     SERVICE_NAME=incident.get('serviceName',None),
@@ -197,3 +197,4 @@ def get_incident_payload(status,incident,workflow_name,actual_threshold,process_
     except Exception as exception:
         print(exception)
     return payload
+
