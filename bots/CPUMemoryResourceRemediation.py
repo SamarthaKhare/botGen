@@ -54,6 +54,7 @@ def get_top_utilization_process(device_config):
     alert type, and is_linux(flag for linux based devices)
     Return: Top resource consuming process on the device
     """
+    print(f'Getting the top resource consuming process for {device_config['hostName']}')
     top_process=None
     if device_config["alertType"] == 'CPU':
         if device_config['isLinux']:
