@@ -101,7 +101,7 @@ def check_incident_status(sys_id):
             response = result['result']['state']
             if(response=='1'):
                 response='open'
-            print(response)
+                print('The current state of the incident is open')
         else:
             response = 'Faliure'
     except Exception as exception:
