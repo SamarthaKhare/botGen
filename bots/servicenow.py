@@ -71,8 +71,8 @@ def create_incident(fpayload):
         payload['alertDateTime']=payload['alertDateTime'].strftime('%Y-%m-%d %H:%M:%S')
         mongodoc=get_single_document(query)
         data={
-            'description':mongodoc['description'],
-            'short_description':mongodoc['shortDescription'],
+            'description':payload,
+            'short_description':mongodoc['shortDescription'].format(alertType=payload['alertType'],hostName=payload['hostName']),
             'impact':'1',
             'urgency':'1'
         }
