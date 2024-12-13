@@ -285,5 +285,3 @@ def get_value_by_field_name(collection_name, primary_key_field_name, field_value
         print(exception)
 
     return result
-
-print(get_all_documents({'alertStatus': 'New', 'alertSeverity': 'Critical', 'alertType': 'CPU'}))
