@@ -1,6 +1,5 @@
 
 from cpu_memory_process import get_total_cpu_usage, get_top_cpu_process, get_total_memory_usage, get_top_memory_process,get_top_cpu_consuming,get_top_memory_consuming,get_top_cpu_consuming_process,get_top_memory_consuming_process
-from utility_helper import device_unreachable_status
 
 def get_actual_threshold(device_config):
     """
@@ -37,7 +36,6 @@ def get_actual_threshold(device_config):
                 print(f'The actual thresold for the {alert_type} on {device_name} is {actual_threshold}')
             else:
                 print("Threshold empty")
-                device_unreachable_status(device_config,"SSH Failure","CPUMemoryResourceRemediation")
         else:
             print("Device Config is None")
         return actual_threshold
