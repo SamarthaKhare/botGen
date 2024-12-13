@@ -188,7 +188,7 @@ def get_incident_payload(status,incident,actual_threshold,process_result=None):
                                     THRESHOLD_VALUE=incident.get("thresholdValue", None),
                                     TOTAL_USAGE=actual_threshold,
                                     FAILURE_TYPE= incident.get('failureType',None),
-                                    RESOLVER = incident.get('resolver', None),
+                                    RESOLVER = incident.get('resolver', 'Suitable Resolver Group'),
                                     SERVICE_NAME=incident.get('serviceName',None),
                                     PROCESS_RESULT= process_result
                                     )           
